@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <Type Name = "Quartz::StringBase&lt;char&gt;">
+    <DisplayString Condition="mpMeta->length == 0">[Empty]</DisplayString>
+    <DisplayString>{mpData + metaSize,na}</DisplayString>
+    <Expand>
+      <Item Name="[Length]">(int)mpMeta->length</Item>
+      <Item Name="[References]">(int)mpMeta->refCount</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::StringBase&lt;wchar_t&gt;">
+    <DisplayString Condition="mpMeta->length == 0">[Empty]</DisplayString>
+    <DisplayString>{mpData + metaSize,su}</DisplayString>
+    <Expand>
+      <Item Name="[Length]">(int)mpMeta->length</Item>
+      <Item Name="[References]">(int)mpMeta->refCount</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::SubStringBase&lt;char&gt;">
+    <DisplayString Condition="mSubLength == 0">[Empty]</DisplayString>
+    <DisplayString>{mpData,[mSubLength]na}</DisplayString>
+    <Expand>
+      <Item Name="[Length]">(int)mSubLength</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::SubStringBase&lt;wchar_t&gt;">
+    <DisplayString Condition="mSubLength">[Empty]</DisplayString>
+    <DisplayString>{mpData,[mSubLength]su}</DisplayString>
+    <Expand>
+      <Item Name="[Length]">(int)mSubLength</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::StringParserBase&lt;char&gt;">
+    <DisplayString Condition="mSubString.mSubLength == 0">[Empty]</DisplayString>
+    <DisplayString>Remaining = {mpHead,[mSubString.mSubLength - ((int)mpHead - (int)mSubString.mpData)]na}</DisplayString>
+    <Expand>
+      <Item Name="[Test]">((int)mpHead - (int)mSubString.mpData)</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::StringParserBase&lt;wchar_t&gt;">
+    <DisplayString Condition="mSubString.mSubLength == 0">[Empty]</DisplayString>
+    <DisplayString>Remaining = {mpHead,[mSubString.mSubLength - ((int)mpHead - (int)mSubString.mpData)]su}</DisplayString>
+    <Expand>
+      <Item Name="[Test]">((int)mpHead - (int)mSubString.mpData)</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::Array&lt;*&gt;">
+    <DisplayString>Size = {mSize}</DisplayString>
+    <Expand>
+      <Item Name="[Size]">mSize</Item>
+      <Item Name="[Capacity]">mCapacity</Item>
+      <ArrayItems>
+        <Size>mSize</Size>
+        <ValuePointer>mpData</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::Stack&lt;*&gt;">
+    <DisplayString>Size = {mSize}</DisplayString>
+    <Expand>
+      <Item Name="[Size]">mSize</Item>
+      <Item Name="[Capacity]">mCapacity</Item>
+      <ArrayItems>
+        <Size>mSize</Size>
+        <ValuePointer>mpData</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type> 
+
+  <Type Name = "Quartz::TableEntry&lt;*&gt;">
+    <DisplayString>[{keyValue}]</DisplayString>
+    <Expand>
+      <Item Name="[KeyValue]">keyValue</Item>
+      <Item Name="[Hash]">hash</Item>
+      <Item Name="[Used]">used</Item>
+      <Item Name="[First]">first</Item>
+      <Item Name="[Last]">last</Item>
+      <Item Name="[Probe]">probe</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::Table&lt;*&gt;">
+    <DisplayString>Size = {mSize}</DisplayString>
+    <Expand>
+      <Item Name="[Size]">mSize</Item>
+      <Item Name="[Capacity]">mCapacity</Item>
+      <Item Name="[Threshold]">mThreshold</Item>
+      <ArrayItems>
+        <Size>mCapacity</Size>
+        <ValuePointer>mTable.mpData</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::MapPair&lt;*,*&gt;">
+    <DisplayString>Key = {key}, Value = {value}</DisplayString>
+    <Expand>
+      <Item Name="[Key]">key</Item>
+      <Item Name="[Value]">value</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::Map&lt;*,*&gt;">
+    <DisplayString>Size = {mTable.mSize}</DisplayString>
+    <Expand>
+      <Item Name="[Size]">mTable.mSize</Item>
+      <Item Name="[Capacity]">mTable.mCapacity</Item>
+      <Item Name="[Threshold]">mTable.mThreshold</Item>
+      <CustomListItems MaxItemsPerView="1000">
+        <Variable Name="pEntry" InitialValue="&amp;mTable.mTable[0]"/>
+        <Variable Name="pEnd" InitialValue="&amp;mTable.mTable[0] + mTable.mCapacity"/>
+        <Loop>
+          <Break Condition="pEntry == pEnd"/>
+          <If Condition="pEntry->used">
+            <Item Name="[{mTable.mCapacity - (pEnd - pEntry)}]">*pEntry</Item>
+          </If>
+          <Exec>++pEntry</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::Set&lt;*&gt;">
+    <DisplayString>Size = {mTable.mSize}</DisplayString>
+    <Expand>
+      <Item Name="[Size]">mTable.mSize</Item>
+      <Item Name="[Capacity]">mTable.mCapacity</Item>
+      <Item Name="[Threshold]">mTable.mThreshold</Item>
+      <CustomListItems MaxItemsPerView="1000">
+        <Variable Name="pEntry" InitialValue="&amp;mTable.mTable[0]"/>
+        <Variable Name="pEnd" InitialValue="&amp;mTable.mTable[0] + mTable.mCapacity"/>
+        <Loop>
+          <Break Condition="pEntry == pEnd"/>
+          <If Condition="pEntry->used">
+            <Item Name="[{mTable.mCapacity - (pEnd - pEntry)}]">*pEntry</Item>
+          </If>
+          <Exec>++pEntry</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::List&lt;*&gt;">
+    <DisplayString>Size = {mSize}</DisplayString>
+    <Expand>
+      <Item Name="[Size]">mSize</Item>
+      <LinkedListItems>
+        <Size>mSize</Size>
+        <HeadPointer>mpHead</HeadPointer>
+        <NextPointer>pNext</NextPointer>
+        <ValueNode>value</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
+  
+</AutoVisualizer>
