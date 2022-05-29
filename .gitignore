@@ -56,4 +56,5 @@ _deps
 #########################
 #     Build Ignores     #
 #########################
-build/
+[Bb]uild/
+[Bb]inary/
