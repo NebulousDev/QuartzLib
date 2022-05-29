@@ -69,8 +69,8 @@ namespace Quartz
 		using PairType	= MapPair<KeyType, ValueType>;
 		using TableType = Table<PairType, HashType>;
 
-		using Iterator		= Iterator<Map, PairType>;
-		using ConstIterator = ConstIterator<Map, PairType>;
+		using Iterator		= Quartz::Iterator<Map, PairType>;
+		using ConstIterator = Quartz::ConstIterator<Map, PairType>;
 
 	private:
 		TableType mTable;
@@ -238,22 +238,22 @@ namespace Quartz
 
 		// for-each functions:
 
-		typename Iterator begin()
+		Iterator begin()
 		{
 			return Begin();
 		}
 
-		typename Iterator end()
+		Iterator end()
 		{
 			return End();
 		}
 
-		typename ConstIterator begin() const
+		ConstIterator begin() const
 		{
 			return Begin();
 		}
 
-		typename ConstIterator end() const
+		ConstIterator end() const
 		{
 			return End();
 		}

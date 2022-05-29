@@ -14,6 +14,10 @@ namespace Quartz
 	public:
 		using ArrayType = Array<ValueType>;
 
+	protected:
+		using Array<ValueType>::mpData;
+		using Array<ValueType>::mSize;
+
 	public:
 		ArrayStack() {}
 
@@ -55,7 +59,7 @@ namespace Quartz
 
 			ValueType value = Move(mpData[mSize - 1]);
 
-			Remove(mSize - 1);
+			ArrayType::Remove(mSize - 1);
 
 			return value;
 		}

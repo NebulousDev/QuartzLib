@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18.0)
+cmake_minimum_required(VERSION 3.20.0)
 
 project(QuartzLib)
 
@@ -21,3 +21,5 @@ add_library(${PROJECT_NAME} INTERFACE
 )
 
 target_include_directories(${PROJECT_NAME} INTERFACE ./Include)
+
+target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)

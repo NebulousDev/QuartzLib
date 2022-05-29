@@ -2,6 +2,7 @@
 
 #include "Types/Types.h"
 #include <memory>
+#include <cstring>
 
 namespace Quartz
 {
@@ -12,12 +13,12 @@ namespace Quartz
 	// TODO: Implement later (with intrinsics)
 	inline void* MemMove(void* pDest, void* pSource, uSize size)
 	{
-		return std::memmove(pDest, pSource, size);
+		return memmove(pDest, pSource, size);
 	}
 
 	// TODO: Implement later (with intrinsics)
 	inline void* MemCopy(void* pDest, void* pSource, uSize size)
 	{
-		return std::memcpy(pDest, pSource, size);
+		return memcpy(pDest, pSource, size);
 	}
 }

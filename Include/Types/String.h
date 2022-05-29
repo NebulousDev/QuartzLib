@@ -4,6 +4,8 @@
 #include "Utility/Hash.h"
 #include "Memory/Memory.h"
 
+#include <cstring>
+
 namespace Quartz
 {
 	/*====================================================
@@ -248,8 +250,8 @@ namespace Quartz
 		friend class StringBase<CharType>;
 
 	public:
-		using StringBase	= StringBase<CharType>;
-		using SubstringType = SubstringBase<CharType>;
+		using StringBase	= Quartz::StringBase<CharType>;
+		using SubstringType = Quartz::SubstringBase<CharType>;
 
 	protected:
 		uSize	mLength;

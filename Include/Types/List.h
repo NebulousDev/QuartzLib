@@ -14,8 +14,8 @@ namespace Quartz
 	class List
 	{
 	public:
-		using Iterator		= Iterator<List, ValueType>;
-		using ConstIterator = ConstIterator<List, ValueType>;
+		using Iterator		= Quartz::Iterator<List, ValueType>;
+		using ConstIterator = Quartz::ConstIterator<List, ValueType>;
 
 	private:
 		struct ListNode
@@ -60,7 +60,7 @@ namespace Quartz
 		{
 			if (mSize < index)
 			{
-				return nullptr
+				return nullptr;
 			}
 
 			ListNode* pNode = mpHead;
@@ -174,7 +174,7 @@ namespace Quartz
 			if (mpTail != nullptr)
 			{
 				ValueType value = Move(mpHead->value);
-
+				 
 				ListNode* pOldTail = mpTail;
 				mpTail = mpTail->pPrev;
 
@@ -185,7 +185,7 @@ namespace Quartz
 
 				--mSize;
 
-				delete pOldHead;
+				delete pOldTail;
 
 				return value;
 			}

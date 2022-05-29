@@ -15,8 +15,8 @@ namespace Quartz
 	public:
 		using TableType	= Table<ValueType, HashType>;
 
-		using Iterator		= Iterator<Set, ValueType>;
-		using ConstIterator = ConstIterator<Set, ValueType>;
+		using Iterator		= Quartz::Iterator<Set, ValueType>;
+		using ConstIterator = Quartz::ConstIterator<Set, ValueType>;
 
 	private:
 		Table<ValueType> mTable;
@@ -52,7 +52,7 @@ namespace Quartz
 		template<typename RValueType>
 		void Remove(RValueType&& value)
 		{
-			mTable.Remove(Hash(key), Forward<RValueType>(value));
+			mTable.Remove(Hash(value), Forward<RValueType>(value));
 		}
 
 		bool Contains(const ValueType& value)
@@ -157,22 +157,22 @@ namespace Quartz
 
 		// for-each functions:
 
-		typename Iterator begin()
+		Iterator begin()
 		{
 			return Begin();
 		}
 
-		typename Iterator end()
+		Iterator end()
 		{
 			return End();
 		}
 
-		typename ConstIterator begin() const
+		ConstIterator begin() const
 		{
 			return Begin();
 		}
 
-		typename ConstIterator end() const
+		ConstIterator end() const
 		{
 			return End();
 		}

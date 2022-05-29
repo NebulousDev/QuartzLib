@@ -36,15 +36,18 @@ namespace Quartz
 	template<typename IterType, typename ValueType>
 	class ConstIterator : public Iterator<IterType, ValueType>
 	{
+	private:
+		using Iterator<IterType, ValueType>::pItr;
+
 	public:
 		ConstIterator()
-			: Iterator() { }
+			: Iterator<IterType, ValueType>() { }
 
 		ConstIterator(ValueType* pItr)
-			: Iterator(pItr) { }
+			: Iterator<IterType, ValueType>(pItr) { }
 
-		ConstIterator(const Iterator& it)
-			: Iterator(it) { }
+		ConstIterator(const ConstIterator& it)
+			: Iterator<IterType, ValueType>(it) { }
 
 		const ValueType& operator*() const
 		{

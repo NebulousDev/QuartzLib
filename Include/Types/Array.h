@@ -16,8 +16,8 @@ namespace Quartz
 	class Array
 	{
 	public:
-		using Iterator		= Iterator<Array, ValueType>;
-		using ConstIterator = ConstIterator<Array, ValueType>;
+		using Iterator		= Quartz::Iterator<Array, ValueType>;
+		using ConstIterator = Quartz::ConstIterator<Array, ValueType>;
 
 		constexpr static uSize RESIZE_FACTOR	= 1.5f;
 		constexpr static uSize INITAL_SIZE		= 16;

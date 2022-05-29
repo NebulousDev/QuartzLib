@@ -5,7 +5,7 @@
 #include "Utility/Swap.h"
 #include "Utility/Iterator.h"
 
-#include <intrin.h>
+//#include <intrin.h>
 #include <type_traits>
 
 namespace Quartz
@@ -97,8 +97,8 @@ namespace Quartz
 		using TableType = Table<KeyValueType, HashType>;
 		using EntryType = TableEntry<KeyValueType, HashType>;
 
-		using Iterator		= Iterator<TableType, EntryType>;
-		using ConstIterator = ConstIterator<TableType, EntryType>;
+		using Iterator		= Quartz::Iterator<TableType, EntryType>;
+		using ConstIterator = Quartz::ConstIterator<TableType, EntryType>;
 
 		constexpr static float	LOAD_FACTOR = 0.85f;
 		constexpr static uSize	INITAL_SIZE = 16;
@@ -281,9 +281,10 @@ namespace Quartz
 
 		uSize NextGreaterPowerOf2(uSize value)
 		{
-			unsigned long idx;
-			_BitScanReverse(&idx, (unsigned long)value);
-			return (uSize)(1U << (idx + 1));
+			//unsigned long idx;
+			//_BitScanReverse(&idx, (unsigned long)value);
+			//return (uSize)(1U << (idx + 1));
+			return NextPowerOf2(value + 1);
 		}
 
 		///////////////////////////////////////////////////////////////////////
