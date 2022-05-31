@@ -27,4 +27,4 @@ target_include_directories(${PROJECT_NAME} INTERFACE "Include")
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
 
 install(DIRECTORY "Include/" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-install(FILES "${PROJECT_NAME}-config.cmake" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/cmake/")
+install(FILES "${PROJECT_NAME}-config.cmake" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/quartzlib/")
