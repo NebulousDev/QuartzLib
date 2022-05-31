@@ -3,6 +3,7 @@
 #include "Types.h"
 #include "Utility/Hash.h"
 #include "Memory/Memory.h"
+#include "Utility/Swap.h"
 
 #include <cstring>
 

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20.0)
 
 project(QuartzLib)
 
+include(GNUInstallDirs)
+
 add_library(${PROJECT_NAME} INTERFACE 
 	"Include/QuartzLib.h"
 	"Include/Types/Types.h"
@@ -20,6 +22,9 @@ add_library(${PROJECT_NAME} INTERFACE
 	"Include/Memory/Memory.h"
 )
 
-target_include_directories(${PROJECT_NAME} INTERFACE ./Include)
+target_include_directories(${PROJECT_NAME} INTERFACE "Include")
 
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
+
+install(DIRECTORY "Include/" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES "${PROJECT_NAME}-config.cmake" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/cmake/")
