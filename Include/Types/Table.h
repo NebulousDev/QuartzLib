@@ -8,7 +8,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	               QUARTZLIB TABLE                   |
+	|                  QUARTZLIB TABLE                   |
 	=====================================================*/
 
 	template<typename KeyValueType, typename HashType>

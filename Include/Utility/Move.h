@@ -3,7 +3,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	                QUARTZLIB MOVE                   |
+	|                   QUARTZLIB MOVE                   |
 	=====================================================*/
 
 	template<typename _Type>

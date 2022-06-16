@@ -5,7 +5,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	               QUARTZLIB STACK                   |
+	|                  QUARTZLIB STACK                   |
 	=====================================================*/
 
 	template<class ValueType>

@@ -7,7 +7,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	                QUARTZLIB HASH                   |
+	|                   QUARTZLIB HASH                   |
 	=====================================================*/
 
 	template<typename HashType>

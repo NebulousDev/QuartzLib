@@ -9,7 +9,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	               QUARTZLIB ARRAY                   |
+	|                  QUARTZLIB ARRAY                   |
 	=====================================================*/
 
 	template<typename ValueType, typename SizeType = uSize>

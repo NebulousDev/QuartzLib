@@ -10,7 +10,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	               QUARTZLIB STRING                  |
+	|                  QUARTZLIB STRING                  |
 	=====================================================*/
 
 	template<typename CharType>

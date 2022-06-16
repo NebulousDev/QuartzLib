@@ -7,7 +7,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	               QUARTZLIB TYPES                   |
+	|                  QUARTZLIB TYPES                   |
 	=====================================================*/
 
 #if defined(_MSC_VER)

@@ -7,7 +7,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	                QUARTZLIB LIST                   |
+	|                   QUARTZLIB LIST                   |
 	=====================================================*/
 
 	template<typename ValueType>

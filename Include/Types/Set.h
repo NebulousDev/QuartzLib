@@ -6,7 +6,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	                QUARTZLIB SET                    |
+	|                   QUARTZLIB SET                    |
 	=====================================================*/
 
 	template<typename ValueType, typename HashType = uSize>

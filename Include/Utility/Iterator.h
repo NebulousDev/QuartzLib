@@ -3,7 +3,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	             QUARTZLIB ITERATOR                  |
+	|                QUARTZLIB ITERATOR                  |
 	=====================================================*/
 
 	template<typename IterType, typename ValueType>

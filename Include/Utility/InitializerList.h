@@ -5,7 +5,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	         QUARTZLIB INITIALIZER LIST              |
+	|            QUARTZLIB INITIALIZER LIST              |
 	=====================================================*/
 
 	// Note:

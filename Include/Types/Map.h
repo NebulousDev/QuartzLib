@@ -6,7 +6,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	                QUARTZLIB MAP                    |
+	|                   QUARTZLIB MAP                    |
 	=====================================================*/
 
 	template<typename KeyType, typename ValueType>

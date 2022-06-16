@@ -5,7 +5,7 @@
 namespace Quartz
 {
 	/*====================================================
-	|	                QUARTZLIB SWAP                   |
+	|                   QUARTZLIB SWAP                   |
 	=====================================================*/
 
 	template<typename Type>
