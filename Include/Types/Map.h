@@ -106,6 +106,13 @@ namespace Quartz
 		}
 
 		template<typename RKeyType>
+		ValueType& Put(RKeyType&& key)
+		{
+			uSize hash = Hash(key);
+			return mTable.Insert(hash, PairType(Forward<RKeyType>(key), ValueType())).value;
+		}
+
+		template<typename RKeyType>
 		ValueType& Get(RKeyType&& key)
 		{
 			PairType& pair = mTable.FindInsert(Hash(key), PairType(Forward<RKeyType>(key)));
@@ -119,13 +126,25 @@ namespace Quartz
 		}
 
 		template<typename RKeyType>
-		PairType* Find(RKeyType&& key)
+		Iterator Find(RKeyType&& key)
 		{
-			return mTable.Find(Hash(key), PairType(Forward<RKeyType>(key)));
+			typename TableType::Iterator tableIt = 
+				mTable.Find(Hash(key), PairType(Forward<RKeyType>(key)));
+
+			return Iterator(&tableIt->AsKeyValue());
 		}
 
 		template<typename RKeyType>
-		bool Contains(const RKeyType&& key)
+		ConstIterator Find(RKeyType&& key) const
+		{
+			typename TableType::ConstIterator tableIt = 
+				mTable.Find(Hash(key), PairType(Forward<RKeyType>(key)));
+
+			return ConstIterator(&tableIt->AsKeyValue());
+		}
+
+		template<typename RKeyType>
+		bool Contains(RKeyType&& key)
 		{
 			return mTable.Contains(Hash(key), PairType(Forward<RKeyType>(key)));
 		}

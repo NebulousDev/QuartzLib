@@ -154,7 +154,7 @@ namespace Quartz
 			return *new (&mpData[mSize++]) ValueType(Forward<RValueType>(value));
 		}
 
-		void Remove(SizeType index)
+		void Remove(SizeType index) 
 		{
 			mpData[index].~ValueType();
 
@@ -164,6 +164,11 @@ namespace Quartz
 				MemMove(&mpData[index], &mpData[index + 1], (mSize - index) * sizeof(ValueType));
 				--mSize;
 			}
+		}
+
+		void Remove(const Iterator& itr)
+		{
+			Remove(IndexOf(itr));
 		}
 
 		ValueType PopBack()
@@ -252,6 +257,29 @@ namespace Quartz
 			}
 
 			ReserveImpl(capacity);
+		}
+
+		uSize IndexOf(const ValueType& value) const
+		{
+			for (ValueType* pValue = mpData; pValue < mpData + mCapacity; pValue++)
+			{
+				if (*pValue == value)
+				{
+					return pValue - mpData;
+				}
+			}
+
+			return (uSize)-1;
+		}
+
+		uSize IndexOf(const Iterator& itr) const
+		{
+			return IndexOf(*itr.pItr);
+		}
+
+		uSize IndexOf(const ConstIterator& itr) const
+		{
+			return IndexOf(*itr.pItr);
 		}
 
 		Iterator Find(const ValueType& value)

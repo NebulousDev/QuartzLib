@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef QUARTZ_TYPES
+
 #include <cinttypes>
 
 namespace Quartz
@@ -72,3 +74,6 @@ namespace Quartz
 	typedef uInt32				handle32;
 	typedef uInt64				handle64;
 }
+
+#endif // !QUARTZ_TYPES
+#define QUARTZ_TYPES

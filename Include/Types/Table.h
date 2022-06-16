@@ -5,9 +5,6 @@
 #include "Utility/Swap.h"
 #include "Utility/Iterator.h"
 
-//#include <intrin.h>
-#include <type_traits>
-
 namespace Quartz
 {
 	/*====================================================
@@ -364,13 +361,13 @@ namespace Quartz
 		Iterator Find(HashType hash, const KeyValueType& keyValue)
 		{
 			EntryType* pEntry = FindEntry(hash, keyValue);
-			return pEntry == nullptr ? End() : Iterator(&pEntry);
+			return pEntry == nullptr ? End() : Iterator(pEntry);
 		}
 
 		ConstIterator Find(HashType hash, const KeyValueType& keyValue) const
 		{
 			EntryType* pEntry = FindEntry(hash, keyValue);
-			return pEntry == nullptr ? End() : Iterator(&pEntry);
+			return pEntry == nullptr ? End() : Iterator(pEntry);
 		}
 
 		template<typename RKeyValueType>
