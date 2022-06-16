@@ -40,7 +40,7 @@ else()
     )
 
     configure_package_config_file(
-        "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in"
+        "${PROJECT_SOURCE_DIR}/CMake/Config.cmake.in"
         "${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         INSTALL_DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}"
     )
