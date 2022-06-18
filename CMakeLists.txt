@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-project(QuartzLib VERSION 1.0.2)
+option(QUARTZLIB_GENERATE_CONFIGS "Enable generation of QuartzLibConfig.cmake" ON)
+
+project(QuartzLib VERSION 1.0.4)
 
 include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
 
 add_library(${PROJECT_NAME} INTERFACE)
 
@@ -15,9 +16,10 @@ target_include_directories(${PROJECT_NAME}
 		"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-# When not running a super-build, generate QuartzLibConfig.cmake
-if(QUARTZ_SUBERBUILD)
-else()
+# Generate QuartzLibConfig.cmake
+if(NOT ${QUARTZ_SUPERBUILD} AND QUARTZLIB_GENERATE_CONFIGS)
+
+    include(CMakePackageConfigHelpers)
 
     # Header-only cmake configs:
     # https://dominikberner.ch/cmake-interface-lib/
