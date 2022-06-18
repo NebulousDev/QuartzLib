@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20.0)
 
 option(QUARTZLIB_GENERATE_CONFIGS "Enable generation of QuartzLibConfig.cmake" ON)
 
-project(QuartzLib VERSION 1.0.4)
+project(QuartzLib VERSION 1.0.5)
 
 include(GNUInstallDirs)
 
@@ -17,7 +17,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 # Generate QuartzLibConfig.cmake
-if(NOT ${QUARTZ_SUPERBUILD} AND QUARTZLIB_GENERATE_CONFIGS)
+if((NOT ${QUARTZ_SUPERBUILD}) AND QUARTZLIB_GENERATE_CONFIGS)
 
     include(CMakePackageConfigHelpers)
 
