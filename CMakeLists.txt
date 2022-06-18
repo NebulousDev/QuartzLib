@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.20.0)
 
 option(QUARTZLIB_GENERATE_CONFIGS "Enable generation of QuartzLibConfig.cmake" ON)
 
-project(QuartzLib VERSION 1.0.5)
+set(QUARTZLIB_INCLUDE_PREFIX "Quartz" CACHE STRING "Include prefix for installed headers")
+
+project(QuartzLib VERSION 1.0.6)
 
 include(GNUInstallDirs)
 
@@ -13,11 +15,11 @@ target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
 target_include_directories(${PROJECT_NAME} 
 	INTERFACE
 		"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>"
-		"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+		"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${QUARTZLIB_INCLUDE_PREFIX}>"
 )
 
 # Generate QuartzLibConfig.cmake
-if((NOT ${QUARTZ_SUPERBUILD}) AND QUARTZLIB_GENERATE_CONFIGS)
+if(QUARTZLIB_GENERATE_CONFIGS)
 
     include(CMakePackageConfigHelpers)
 
@@ -61,7 +63,9 @@ if((NOT ${QUARTZ_SUPERBUILD}) AND QUARTZLIB_GENERATE_CONFIGS)
 
     install(
         DIRECTORY "${PROJECT_SOURCE_DIR}/Include/" 
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${QUARTZLIB_INCLUDE_PREFIX}
     )
+
+    message("[${PROJECT_NAME}] Generating ${PROJECT_NAME}Config.cmake...")
 
 endif()
