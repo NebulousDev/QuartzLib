@@ -5,7 +5,7 @@ option(QUARTZLIB_GENERATE_CONFIGS "Enable generation of QuartzLibConfig.cmake" O
 set(QUARTZLIB_INCLUDE_PREFIX "Quartz" CACHE STRING "Include prefix for installed headers")
 
 project(QuartzLib 
-    VERSION 1.0.7
+    VERSION 1.1.0
     DESCRIPTION "A simple library of tools created for use with the Quartz Engine"
     HOMEPAGE_URL "https://github.com/NebulousDev/QuartzLib"
 )
@@ -19,7 +19,7 @@ target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
 target_include_directories(${PROJECT_NAME} 
 	INTERFACE
 		"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>"
-		"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${QUARTZLIB_INCLUDE_PREFIX}>"
+		"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
 # Generate QuartzLibConfig.cmake
