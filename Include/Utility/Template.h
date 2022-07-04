@@ -82,15 +82,15 @@ namespace Quartz
 		If value is true, index will be the first value,
 		if value is false, index will be the second value
 	*/
-	template<bool value, uSize trueValue, uSize falseValue>
+	template<bool value, sSize trueValue, sSize falseValue>
 	struct ConditionIndex
 	{
-		constexpr static uSize index = trueValue;
+		constexpr static sSize index = trueValue;
 	};
 
-	template<uSize trueValue, uSize falseValue>
+	template<sSize trueValue, sSize falseValue>
 	struct ConditionIndex<false, trueValue, falseValue>
 	{
-		constexpr static uSize index = falseValue;
+		constexpr static sSize index = falseValue;
 	};
 }

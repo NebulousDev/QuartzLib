@@ -11,6 +11,7 @@ namespace Quartz
     namespace Detail
     {
         // https://stackoverflow.com/questions/40993441/constexpr-tricks
+        // https://b.atch.se/posts/constexpr-counter/
 
 	    template <typename T> 
         class Flag
@@ -131,7 +132,11 @@ namespace Quartz
 	public:
 		constexpr static uInt64 Value()
 		{
-			constexpr uInt64 value = static_cast<uInt64>(TypeHash(__FUNCSIG__));
+#ifdef _WIN32
+            constexpr uInt64 value = static_cast<uInt64>(TypeHash(__FUNCSIG__));
+#elif defined __GNUC__
+            constexpr uInt64 value = static_cast<uInt64>(TypeHash(__PRETTY_FUNCTION__));
+#endif
 			return value;
 		}
 	};

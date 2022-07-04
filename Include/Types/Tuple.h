@@ -10,7 +10,7 @@ namespace Quartz
 	=====================================================*/
 
 	/** A single tuple value */
-	template<uSize index, typename Type>
+	template<sSize index, typename Type>
 	class TupleValue
 	{
 	private:
@@ -32,16 +32,16 @@ namespace Quartz
 	};
 
 	/** Base class type for Tuple */
-	template<uSize index, typename... Types>
+	template<sSize index, typename... Types>
 	struct _TupleBase;
 
 	/** Base case */
-	template<uSize index>
+	template<sSize index>
 	struct _TupleBase<index> {};
 
-	template<uSize index, typename Type, typename... Types>
+	template<sSize index, typename Type, typename... Types>
 	struct _TupleBase<index, Type, Types...>
-		: public TupleValue<index, Type>, public _TupleBase<index + 1, Types...>
+		: public TupleValue<index, StripReference<Type>>, public _TupleBase<index + 1, Types...>
 	{
 		constexpr _TupleBase() = default;
 
@@ -64,7 +64,7 @@ namespace Quartz
 		and will not work with tuples containing more than one of the same
 		element type.
 	*/
-	template<uSize index, typename _Type, typename... Types>
+	template<sSize index, typename _Type, typename... Types>
 	struct _TupleGetType
 	{
 		using Type = typename _TupleGetType<index - 1, Types...>::Type;
@@ -79,19 +79,19 @@ namespace Quartz
 	////////////////////////////////////////////////////////////////////////
 	
 	/* Retrieves a Tuple element by index */
-	template<typename Search, uSize index, typename... Types>
+	template<typename Search, sSize index, typename... Types>
 	struct _TupleGetIndex;
 
-	template<typename Search, uSize _index, typename Type, typename... Types>
+	template<typename Search, sSize _index, typename Type, typename... Types>
 	struct _TupleGetIndex<Search, _index, Type, Types...>
 	{
-		constexpr static uSize index = ConditionIndex<IsSameType<Search, Type>::value, _index, _TupleGetIndex<Search, _index + 1, Types...>::index>::index;
+		constexpr static sSize index = ConditionIndex<IsSameType<Search, Type>::value, _index, _TupleGetIndex<Search, _index + 1, Types...>::index>::index;
 	};
 
-	template<typename Search, uSize _index, typename Type>
+	template<typename Search, sSize _index, typename Type>
 	struct _TupleGetIndex<Search, _index, Type>
 	{
-		constexpr static uSize index = ConditionIndex<IsSameType<Search, Type>::value, _index, -1>::index;
+		constexpr static sSize index = ConditionIndex<IsSameType<Search, Type>::value, _index, -1>::index;
 	};
 
 	////////////////////////////////////////////////////////////////////////
@@ -110,7 +110,7 @@ namespace Quartz
 		constexpr Tuple(ValTypes&&... values)
 			: _TupleBase<0, Type, Types...>(Forward<ValTypes>(values)...) {}
 
-		template<uSize index>
+		template<sSize index>
 		constexpr auto Get()
 		{
 			return static_cast<TupleValue<index, typename _TupleGetType<index, Type, Types...>::Type>>(*this).Value();
@@ -127,5 +127,4 @@ namespace Quartz
 			return sizeof...(Types) + 1;
 		}
 	};
-
 }
