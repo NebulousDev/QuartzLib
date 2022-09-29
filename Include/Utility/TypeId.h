@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Types/Types.h"
+#include "Types/String.h"
 
 namespace Quartz
 {
@@ -105,6 +106,20 @@ namespace Quartz
             }
         };
     }
+
+    template<typename Type>
+    class TypeName
+    {
+    public:
+        constexpr static String Value()
+        {
+#ifdef _WIN32
+            return String(__FUNCSIG__);
+#elif defined __GNUC__
+            return String(__PRETTY_FUNCTION__);
+#endif
+        }
+    };
 
 	template<typename Type>
 	class TypeId
