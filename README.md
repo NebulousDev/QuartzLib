@@ -23,3 +23,14 @@ Some of the containers and utilites available in QuartzLib:
 - **Forward**: An implementation of std::forward
 - **Swap**: An implementation of std::swap
 - **TypeId**: A simple compile-time id/reflection utility
+
+---
+
+# How to use
+How to build/use QuartzLib
+
+### CMake:
+```
+find_package(QuartzLib)
+target_link_libraries(${PROJECT_NAME} PUBLIC QuartzLib)
+```
