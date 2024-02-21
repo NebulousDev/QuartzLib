@@ -63,8 +63,12 @@ namespace Quartz
 		}
 
 	public:
-		StringBase() :
-			mpMeta(new StringMeta()) { }
+		StringBase() : 
+			mpData(new uInt8[metaSize + sizeof(CharType)])
+		{
+			*mpMeta = StringMeta(1, 0);
+			*reinterpret_cast<CharType*>(mpData + metaSize) = '\0';
+		}
 
 		StringBase(const StringBase& str)
 			: mpData(str.mpData)
@@ -86,7 +90,7 @@ namespace Quartz
 			const uSize strBufferSize	= (length + 1) * sizeof(CharType);
 			const uSize fullBufferSize	= metaSize + strBufferSize;
 
-			mpData = new uInt8[fullBufferSize];
+			mpData = new uInt8[fullBufferSize]{};
 
 			*mpMeta = StringMeta(1, length);
 			MemCopy((void*)(mpData + metaSize), (void*)pStr, strBufferSize);
@@ -102,7 +106,7 @@ namespace Quartz
 		{
 			if (--mpMeta->refCount == 0)
 			{
-				delete mpData;
+				delete[] mpData;
 			}
 		}
 
@@ -202,11 +206,11 @@ namespace Quartz
 
 			const uInt8* mpPrev = mpData;
 
-			mpData = new uInt8[fullBufferSize];
+			mpData = new uInt8[fullBufferSize]{};
 			mpMeta->refCount = ((StringMeta*)mpPrev)->refCount;
 			mpMeta->length = length;
 
-			reinterpret_cast<CharType*>(mpData + metaSize)[length] = 0;
+			reinterpret_cast<CharType*>(mpData + metaSize)[length] = '\0';
 
 			delete mpPrev;
 
@@ -228,7 +232,7 @@ namespace Quartz
 			return mpMeta->length;
 		}
 
-		uSize RefrefCount() const
+		uSize RefCount() const
 		{
 			return mpMeta->refCount;
 		}
@@ -339,11 +343,6 @@ namespace Quartz
 		operator StringBase()
 		{
 			return String(Str(), mLength);
-		}
-
-		uSize Hash() const
-		{
-			return StringHash(Str());
 		}
 
 		const CharType* Str() const

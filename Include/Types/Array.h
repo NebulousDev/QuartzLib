@@ -37,7 +37,8 @@ namespace Quartz
 		void ReserveImpl(SizeType capacity, SizeType offset = 0)
 		{
 			ValueType* mpPrev = mpData;
-			mpData = new ValueType[capacity * sizeof(ValueType)];
+
+			mpData = new ValueType[capacity];
 
 			for (SizeType i = 0; i < mSize; i++)
 			{
@@ -65,36 +66,28 @@ namespace Quartz
 		Array(SizeType size)
 			: mSize(size), mCapacity(size)
 		{
-			mpData = new ValueType[size * sizeof(ValueType)];
-
-			for (SizeType i = 0; i < mSize; i++)
-			{
-				// Construct new default-constructed value
-				new (&mpData[i]) ValueType();
-			}
+			mpData = new ValueType[size];
 		}
 
 		Array(SizeType size, const ValueType& value)
 			: mSize(size), mCapacity(size)
 		{
-			mpData = new ValueType[size * sizeof(ValueType)];
+			mpData = new ValueType[size];
 
 			for (SizeType i = 0; i < mSize; i++)
 			{
-				// Construct new value with given initial value
-				new (&mpData[i]) ValueType(value);
+				mpData[i] = value;
 			}
 		}
 
 		Array(const Array& array)
 			: mSize(array.mSize), mCapacity(array.mCapacity)
 		{
-			mpData = new ValueType[array.mCapacity * sizeof(ValueType)];
+			mpData = new ValueType[array.mCapacity];
 
 			for (SizeType i = 0; i < mSize; i++)
 			{
-				// Construct value from given value from the array
-				new (&mpData[i]) ValueType(array.mpData[i]);
+				mpData[i] = array.mpData[i];
 			}
 		}
 
@@ -109,8 +102,7 @@ namespace Quartz
 		{
 			for (SizeType i = 0; i < mSize; i++)
 			{
-				// Construct value from given value from the array
-				new (&mpData[i]) ValueType(*(list.begin() + i));
+				mpData[i] = *(list.begin() + i);
 			}
 		}
 
@@ -138,8 +130,9 @@ namespace Quartz
 			++mSize;
 
 			// Construct at the beginning of the array
-			return *new (&mpData[0]) ValueType(Forward<RValueType>(value));
+			mpData[0] = Forward<RValueType>(value);
 
+			return mpData[0];
 		}
 
 		template<typename RValueType>
@@ -151,7 +144,9 @@ namespace Quartz
 			}
 
 			// Construct at the end of the array
-			return *new (&mpData[mSize++]) ValueType(Forward<RValueType>(value));
+			mpData[mSize] = Forward<RValueType>(value);
+
+			return mpData[mSize++];
 		}
 
 		void Remove(SizeType index) 
@@ -166,9 +161,17 @@ namespace Quartz
 			}
 		}
 
+		void Remove(const ValueType& value)
+		{
+			Iterator& itr = Find(value);
+			uSize index = itr.pItr - mpData;
+			Remove(index);
+		}
+
 		void Remove(const Iterator& itr)
 		{
-			Remove(IndexOf(itr));
+			uSize index = itr.pItr - mpData;
+			Remove(index);
 		}
 
 		ValueType PopBack()
@@ -214,7 +217,7 @@ namespace Quartz
 			for (SizeType i = mSize; i < size; i++)
 			{
 				// Construct new default-constructed value
-				new (&mpData[i]) ValueType();
+				//new (&mpData[i]) ValueType();
 			}
 
 			mSize = size;
@@ -315,7 +318,7 @@ namespace Quartz
 
 		ConstIterator Begin() const
 		{
-			return Iterator(mpData);
+			return ConstIterator(mpData);
 		}
 
 		Iterator End()
@@ -325,7 +328,7 @@ namespace Quartz
 
 		ConstIterator End() const
 		{
-			return Iterator(mpData + mSize);
+			return ConstIterator(mpData + mSize);
 		}
 
 		bool Contains(const ValueType& value) const

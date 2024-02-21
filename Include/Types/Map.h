@@ -153,7 +153,7 @@ namespace Quartz
 		{
 			if (IsEmpty())
 			{
-				return nullptr;
+				return End();
 			}
 
 			Iterator it(&mTable.Data()->AsKeyValue());
@@ -170,7 +170,7 @@ namespace Quartz
 		{
 			if (IsEmpty())
 			{
-				return nullptr;
+				return End();
 			}
 
 			Iterator it(&mTable.Data()->AsKeyValue());
@@ -185,21 +185,11 @@ namespace Quartz
 
 		Iterator End()
 		{
-			if (IsEmpty())
-			{
-				return nullptr;
-			}
-
 			return Iterator(&(mTable.Data() + Capacity())->AsKeyValue());
 		}
 
 		ConstIterator End() const
 		{
-			if (IsEmpty())
-			{
-				return nullptr;
-			}
-
 			return ConstIterator(&(mTable.Data() + Capacity())->AsKeyValue());
 		}
 

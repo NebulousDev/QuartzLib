@@ -83,7 +83,12 @@ namespace Quartz
 
 		KeyValueType& AsKeyValue()
 		{
-			return reinterpret_cast<KeyValueType&>(*this);
+			return keyValue;
+		}
+
+		const KeyValueType& AsKeyValue() const
+		{
+			return keyValue;
 		}
 	};
 
@@ -205,6 +210,7 @@ namespace Quartz
 		EntryType& InsertImpl(HashType hash, RKeyValueType&& keyValue)
 		{
 			HashType index = GetIndex(hash);
+			HashType swapedIndex = -1;
 
 			EntryType entry(hash, Forward<RKeyValueType>(keyValue));
 
@@ -217,20 +223,25 @@ namespace Quartz
 				{
 					++mSize;
 					Swap(entry, current);
-					return current;
+					return mTable[swapedIndex == -1 ? index : swapedIndex];
 				}
 
 				// Found previous key entry
 				if (current.keyValue == entry.keyValue)
 				{
 					Swap(entry, current);
-					return current;
+					return mTable[swapedIndex == -1 ? index : swapedIndex];
 				}
 
 				// Robin hood
 				if (current.probe < entry.probe)
 				{
 					Swap(entry, current);
+
+					if (swapedIndex == -1)
+					{
+						swapedIndex = index;
+					}
 				}
 
 				++entry.probe;
@@ -366,8 +377,8 @@ namespace Quartz
 
 		ConstIterator Find(HashType hash, const KeyValueType& keyValue) const
 		{
-			EntryType* pEntry = FindEntry(hash, keyValue);
-			return pEntry == nullptr ? End() : Iterator(pEntry);
+			const EntryType* pEntry = FindEntry(hash, keyValue);
+			return pEntry == nullptr ? End() : ConstIterator(pEntry);
 		}
 
 		template<typename RKeyValueType>
@@ -386,7 +397,7 @@ namespace Quartz
 		{
 			if (mTable.IsEmpty())
 			{
-				return nullptr;
+				return Iterator();
 			}
 
 			Iterator it(&mTable[0]);
@@ -403,7 +414,7 @@ namespace Quartz
 		{
 			if (mTable.IsEmpty())
 			{
-				return nullptr;
+				return ConstIterator();
 			}
 
 			ConstIterator it(&mTable[0]);
@@ -420,7 +431,7 @@ namespace Quartz
 		{
 			if (mTable.IsEmpty())
 			{
-				return nullptr;
+				return Iterator();
 			}
 
 			return Iterator(mTable.Data() + mCapacity);
@@ -430,7 +441,7 @@ namespace Quartz
 		{
 			if (mTable.IsEmpty())
 			{
-				return nullptr;
+				return ConstIterator();
 			}
 
 			return ConstIterator(mTable.Data() + mCapacity);
@@ -445,6 +456,11 @@ namespace Quartz
 		}
 
 		EntryType* Data()
+		{
+			return mTable.Data();
+		}
+
+		const EntryType* Data() const
 		{
 			return mTable.Data();
 		}

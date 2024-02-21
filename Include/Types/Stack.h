@@ -74,6 +74,8 @@ namespace Quartz
 		using ArrayType::Capacity;
 		using ArrayType::IsEmpty;
 
+		using ArrayType::operator=;
+
 		// for-each functions:
 
 		using ArrayType::begin;

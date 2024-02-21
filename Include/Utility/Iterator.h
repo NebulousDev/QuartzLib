@@ -46,6 +46,9 @@ namespace Quartz
 		ConstIterator(ValueType* pItr)
 			: Iterator<IterType, ValueType>(pItr) { }
 
+		ConstIterator(const ValueType* pItr)
+			: Iterator<IterType, ValueType>(const_cast<ValueType*>(pItr)) { }
+
 		ConstIterator(const ConstIterator& it)
 			: Iterator<IterType, ValueType>(it) { }
 
