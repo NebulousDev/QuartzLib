@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Types.h"
-#include "Array.h"
+#include "../Types.h"
+#include "../Array.h"
 
 #include <cassert>
 
@@ -14,15 +14,15 @@ namespace Quartz
 	template<typename ValueType, typename IntType>
 	IntType SparseIndex(ValueType& value) = delete;
 
-	template<typename _ValueType = uInt32, typename _IntType = uInt32, uSize blockSize = 64>
+	template<typename _ValueType = uInt32, typename _IntType = uInt32, uSize BLOCK_SIZE = 64>
 	class SparseSet
 	{
 	public:
-		constexpr static uSize ENTITIES_PER_BLOCK = blockSize;
+		constexpr static uSize ENTITIES_PER_BLOCK = BLOCK_SIZE;
 
 		using ValueType			= _ValueType;
 		using IntType			= _IntType;
-		using SparseSetType		= SparseSet<_ValueType, _IntType, blockSize>;
+		using SparseSetType		= SparseSet<_ValueType, _IntType, BLOCK_SIZE>;
 		using Iterator			= typename Array<ValueType>::Iterator;
 
 		using SparseBlock		= Array<IntType>;
@@ -121,6 +121,16 @@ namespace Quartz
 		Iterator end()
 		{
 			return mDense.end();
+		}
+
+		Iterator rbegin()
+		{
+			return mDense.rbegin();
+		}
+
+		Iterator rend()
+		{
+			return mDense.rend();
 		}
 
 		uSize Size() const

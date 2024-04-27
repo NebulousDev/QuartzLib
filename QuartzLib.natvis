@@ -19,35 +19,35 @@
     </Expand>
   </Type>
 
-  <Type Name = "Quartz::SubStringBase&lt;char&gt;">
-    <DisplayString Condition="mSubLength == 0">[Empty]</DisplayString>
-    <DisplayString>{mpData,[mSubLength]na}</DisplayString>
+  <Type Name = "Quartz::WrapperStringBase&lt;char&gt;">
+    <DisplayString Condition="mLength == 0">[Empty]</DisplayString>
+    <DisplayString>{mpStr,[mLength]na}</DisplayString>
     <Expand>
-      <Item Name="[Length]">(int)mSubLength</Item>
+      <Item Name="[Length]">(int)mLength</Item>
     </Expand>
   </Type>
 
-  <Type Name = "Quartz::SubStringBase&lt;wchar_t&gt;">
-    <DisplayString Condition="mSubLength">[Empty]</DisplayString>
-    <DisplayString>{mpData,[mSubLength]su}</DisplayString>
+  <Type Name = "Quartz::WrapperStringBase&lt;wchar_t&gt;">
+    <DisplayString Condition="mLength">[Empty]</DisplayString>
+    <DisplayString>{mpStr,[mLength]su}</DisplayString>
     <Expand>
-      <Item Name="[Length]">(int)mSubLength</Item>
+      <Item Name="[Length]">(int)mLength</Item>
     </Expand>
   </Type>
 
-  <Type Name = "Quartz::StringParserBase&lt;char&gt;">
-    <DisplayString Condition="mSubString.mSubLength == 0">[Empty]</DisplayString>
-    <DisplayString>Remaining = {mpHead,[mSubString.mSubLength - ((int)mpHead - (int)mSubString.mpData)]na}</DisplayString>
+  <Type Name = "Quartz::SubstringBase&lt;char&gt;">
+    <DisplayString Condition="mLength == 0">[Empty]</DisplayString>
+    <DisplayString>{mpStr,[mLength]na}</DisplayString>
     <Expand>
-      <Item Name="[Test]">((int)mpHead - (int)mSubString.mpData)</Item>
+      <Item Name="[Length]">(int)mLength</Item>
     </Expand>
   </Type>
 
-  <Type Name = "Quartz::StringParserBase&lt;wchar_t&gt;">
-    <DisplayString Condition="mSubString.mSubLength == 0">[Empty]</DisplayString>
-    <DisplayString>Remaining = {mpHead,[mSubString.mSubLength - ((int)mpHead - (int)mSubString.mpData)]su}</DisplayString>
+  <Type Name = "Quartz::SubstringBase&lt;wchar_t&gt;">
+    <DisplayString Condition="mLength">[Empty]</DisplayString>
+    <DisplayString>{mpStr,[mLength]su}</DisplayString>
     <Expand>
-      <Item Name="[Test]">((int)mpHead - (int)mSubString.mpData)</Item>
+      <Item Name="[Length]">(int)mLength</Item>
     </Expand>
   </Type>
 

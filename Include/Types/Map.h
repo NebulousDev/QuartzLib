@@ -100,7 +100,7 @@ namespace Quartz
 		template<typename RKeyType, typename RValueType>
 		ValueType& Put(RKeyType&& key, RValueType&& value)
 		{
-			uSize hash = Hash(key);
+			uSize hash = Hash<KeyType>(key);
 			return mTable.Insert(hash, PairType(Forward<RKeyType>(key), 
 				Forward<RValueType>(value))).value;
 		}
@@ -108,7 +108,7 @@ namespace Quartz
 		template<typename RKeyType>
 		ValueType& Put(RKeyType&& key)
 		{
-			uSize hash = Hash(key);
+			uSize hash = Hash<KeyType>(key);
 			return mTable.Insert(hash, PairType(Forward<RKeyType>(key), ValueType())).value;
 		}
 
@@ -119,10 +119,14 @@ namespace Quartz
 			return pair.value;
 		}
 
-		template<typename RKeyType>
-		void Remove(RKeyType&& key)
+		void Remove(const KeyType& key)
 		{
-			mTable.Remove(Hash(key), PairType(Forward<RKeyType>(key)));
+			mTable.Remove(Hash(key), key);
+		}
+
+		void Remove(Iterator& it)
+		{
+			mTable.Remove((TableType::EntryType*)it.pItr);
 		}
 
 		template<typename RKeyType>
@@ -196,11 +200,6 @@ namespace Quartz
 		bool Reserve(uSize size)
 		{
 			return mTable.Reserve(size);
-		}
-
-		void Remove(const KeyType& key)
-		{
-			mTable.Remove(Hash(key), key);
 		}
 
 		void Shrink()

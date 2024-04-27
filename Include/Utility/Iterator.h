@@ -98,6 +98,40 @@ namespace Quartz
 	}
 
 	template<typename IterType, typename ValueType>
+	Iterator<IterType, ValueType>&
+		operator--(Iterator<IterType, ValueType>& itr)
+	{
+		--itr.pItr;
+		return itr;
+	}
+
+	template<typename IterType, typename ValueType>
+	Iterator<IterType, ValueType>
+		operator--(Iterator<IterType, ValueType>& itr, int)
+	{
+		Iterator<IterType, ValueType> temp(itr);
+		--itr.pItr;
+		return temp;
+	}
+
+	template<typename IterType, typename ValueType>
+	const Iterator<IterType, ValueType>&
+		operator--(const Iterator<IterType, ValueType>& itr)
+	{
+		--itr.pItr;
+		return itr;
+	}
+
+	template<typename IterType, typename ValueType>
+	const Iterator<IterType, ValueType>
+		operator--(const Iterator<IterType, ValueType>& itr, int)
+	{
+		Iterator<IterType, ValueType> temp(itr);
+		--itr.pItr;
+		return temp;
+	}
+
+	template<typename IterType, typename ValueType>
 	bool operator==(const Iterator<IterType, ValueType>& itrLeft, 
 		const Iterator<IterType, ValueType>& itrRight)
 	{

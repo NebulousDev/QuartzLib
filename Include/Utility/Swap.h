@@ -17,7 +17,7 @@ namespace Quartz
 	}
 
 	template<typename Type>
-	void SwapLazy(Type& t1, Type& t2)
+	void SwapNoMove(Type& t1, Type& t2)
 	{
 		Type temp = t1;
 		t1 = t2;

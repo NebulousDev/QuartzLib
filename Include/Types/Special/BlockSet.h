@@ -10,14 +10,14 @@ namespace Quartz
 	|                 QUARTZLIB BLOCK SET                |
 	=====================================================*/
 
-	template<typename _ValueType, typename _HandleType = uInt32, typename _IntType = uInt32, uSize blockSize = 64>
-	class BlockSet : public SparseSet<_HandleType, _IntType, blockSize>
+	template<typename _ValueType, typename _HandleType = uInt32, typename _IntType = uInt32, uSize BLOCK_SIZE = 64>
+	class BlockSet : public SparseSet<_HandleType, _IntType, BLOCK_SIZE>
 	{
 	public:
 		using ValueType		= _ValueType;
 		using HandleType	= _HandleType;
 		using IntType		= _IntType;
-		using SparseSet		= Quartz::SparseSet<_HandleType, _IntType, blockSize>;
+		using SparseSet		= Quartz::SparseSet<_HandleType, _IntType, BLOCK_SIZE>;
 		using Iterator		= typename Array<ValueType>::Iterator;
 	
 	private:
@@ -70,6 +70,16 @@ namespace Quartz
 		Iterator end()
 		{
 			return mBlockSet.end();
+		}
+
+		Iterator rbegin()
+		{
+			return mBlockSet.rbegin();
+		}
+
+		Iterator rend()
+		{
+			return mBlockSet.rend();
 		}
 
 		uSize Size() const

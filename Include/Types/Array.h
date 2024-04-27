@@ -19,7 +19,7 @@ namespace Quartz
 		using Iterator		= Quartz::Iterator<Array, ValueType>;
 		using ConstIterator = Quartz::ConstIterator<Array, ValueType>;
 
-		constexpr static uSize RESIZE_FACTOR	= 1.5f;
+		constexpr static float RESIZE_FACTOR	= 1.5f;
 		constexpr static uSize INITAL_SIZE		= 16;
 
 	protected:
@@ -174,6 +174,32 @@ namespace Quartz
 			Remove(index);
 		}
 
+		// FastRemove will swap the removed element with the last in the list
+		// This function does NOT preserve insertion order
+		void FastRemove(SizeType index)
+		{
+			Swap(mpData[index], mpData[mSize]);
+			mpData[mSize].~ValueType();
+			mSize--;
+		}
+
+		// FastRemove will swap the removed element with the last in the list
+		// This function does NOT preserve insertion order
+		void FastRemove(const ValueType& value)
+		{
+			Iterator& itr = Find(value);
+			uSize index = itr.pItr - mpData;
+			FastRemove(index);
+		}
+
+		// FastRemove will swap the removed element with the last in the list
+		// This function does NOT preserve insertion order
+		void FastRemove(const Iterator& itr)
+		{
+			uSize index = itr.pItr - mpData;
+			FastRemove(index);
+		}
+
 		ValueType PopBack()
 		{
 			if (mSize > 0)
@@ -241,7 +267,7 @@ namespace Quartz
 
 			else if (size < mSize)
 			{
-				for (SizeType i = mSize; i >= size; --i)
+				for (SizeType i = mSize - 1; i >= size; --i)
 				{
 					// Destruct valid entries
 					mpData[i].~ValueType();
@@ -311,25 +337,69 @@ namespace Quartz
 			return ConstIterator(End());
 		}
 
-		Iterator Begin()
+		Iterator begin()
 		{
 			return Iterator(mpData);
 		}
 
-		ConstIterator Begin() const
+		ConstIterator begin() const
 		{
 			return ConstIterator(mpData);
 		}
 
-		Iterator End()
+		Iterator end()
 		{
 			return Iterator(mpData + mSize);
 		}
 
-		ConstIterator End() const
+		ConstIterator end() const
 		{
 			return ConstIterator(mpData + mSize);
 		}
+
+		Iterator rbegin()
+		{
+			return Iterator(mpData + mSize - 1);
+		}
+
+		ConstIterator rbegin() const
+		{
+			return ConstIterator(mpData + mSize - 1);
+		}
+
+		Iterator rend()
+		{
+			return Iterator(mpData - 1);
+		}
+
+		ConstIterator rend() const
+		{
+			return ConstIterator(mpData - 1);
+		}
+
+		/// Legacy Begin/End ///
+
+		Iterator Begin()
+		{
+			return begin();
+		}
+
+		const ConstIterator Begin() const
+		{
+			return begin();
+		}
+
+		Iterator End()
+		{
+			return end();
+		}
+
+		const ConstIterator End() const
+		{
+			return end();
+		}
+
+		////////////////////////
 
 		bool Contains(const ValueType& value) const
 		{
@@ -351,11 +421,12 @@ namespace Quartz
 
 		void Clear()
 		{
-			delete[] mpData;
-			mpData = new ValueType[INITAL_SIZE];
+			for (uSize i = 0; i < mSize; i++)
+			{
+				(&mpData[i])->~ValueType();
+			}
 
 			mSize = 0;
-			mCapacity = INITAL_SIZE;
 		}
 
 		ValueType* Data()
@@ -397,28 +468,6 @@ namespace Quartz
 		const ValueType& operator[](SizeType index) const
 		{
 			return mpData[index];
-		}
-
-		// for-each functions:
-
-		Iterator begin()
-		{
-			return Begin();
-		}
-
-		const ConstIterator begin() const
-		{
-			return Begin();
-		}
-
-		Iterator end()
-		{
-			return End();
-		}
-
-		const ConstIterator end() const
-		{
-			return End();
 		}
 
 		// Iterator overloads:

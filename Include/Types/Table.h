@@ -255,7 +255,9 @@ namespace Quartz
 
 			EntryType* pEntry = &mTable[0];
 
-			while (!pEntry->IsLast())
+			//((EntryType)mTable[mCapacity - 1]).isLast = true; // TODO: Figure out why I need this
+
+			while (pEntry != &mTable[mCapacity])//(!pEntry->IsLast())
 			{
 				if (!pEntry->IsEmpty())
 				{
@@ -265,10 +267,10 @@ namespace Quartz
 				++pEntry;
 			}
 
-			if (!pEntry->IsEmpty())
-			{
-				mNewTable.Insert(pEntry->hash, Move(pEntry->keyValue));
-			}
+			//if (!pEntry->IsEmpty())
+			//{
+			//	mNewTable.Insert(pEntry->hash, Move(pEntry->keyValue));
+			//}
 
 			Swap(mNewTable, *this);
 		}
@@ -342,6 +344,24 @@ namespace Quartz
 			if (pEntry)
 			{
 				pEntry->used = false;
+				mSize--;
+			}
+		}
+
+		void Remove(EntryType* pEntry)
+		{
+			if (pEntry)
+			{
+				pEntry->used = false;
+				mSize--;
+			}
+		}
+
+		void Remove(Iterator& it)
+		{
+			if (it != End())
+			{
+				it->used = false;
 				mSize--;
 			}
 		}

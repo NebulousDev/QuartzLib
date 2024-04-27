@@ -4,6 +4,7 @@
 #include "Utility/Hash.h"
 #include "Memory/Memory.h"
 #include "Utility/Swap.h"
+#include "Utility/Whitespace.h"
 
 #include <cstring>
 
@@ -17,21 +18,30 @@ namespace Quartz
 	uSize StrLen(const CharType* pStr);
 
 	template<typename CharType>
-	uSize StrCmp(const CharType* pStr1, const CharType* pStr2);
+	sSize StrCmp(const CharType* pStr1, const CharType* pStr2);
 
 	template<typename CharType>
-	uSize StrCmpCount(const CharType* pStr1, const CharType* pStr2, uSize count);
+	sSize StrCmpCount(const CharType* pStr1, const CharType* pStr2, uSize count);
+
+	template<typename CharType>
+	const CharType* StrStr(const CharType* pStr, const CharType* pDelim);
+
+	template<typename CharType>
+	class WrapperStringBase;
 
 	template<typename CharType>
 	class SubstringBase;
 
-	template<typename CharType>
+	template<typename _CharType>
 	class StringBase
 	{
 	public:
-		using SubstringType = SubstringBase<CharType>;
+		using CharType			= _CharType;
+		using SubstringType		= SubstringBase<CharType>;
+		using WrapperStringType = WrapperStringBase<CharType>;
 
-		friend SubstringType;
+		using SubstringBase		= SubstringBase<CharType>;
+		using WrapperStringBase = WrapperStringBase<CharType>;
 
 	protected:
 
@@ -99,7 +109,10 @@ namespace Quartz
 			reinterpret_cast<CharType*>(mpData + metaSize)[length] = '\0';
 		}
 
-		StringBase(const SubstringType& substr)
+		StringBase(const WrapperStringBase& str)
+			: StringBase(str.Str(), str.Length()) { }
+
+		StringBase(const SubstringBase& substr)
 			: StringBase(substr.Str(), substr.Length()) { }
 
 		~StringBase()
@@ -110,13 +123,12 @@ namespace Quartz
 			}
 		}
 
-		StringBase Append(const CharType* pStr) const
+		StringBase Append(const WrapperStringBase& str) const
 		{
 			StringBase result;
-			uSize length = StrLen(pStr);
-			result.Resize(mpMeta->length + length);
+			result.Resize(mpMeta->length + str.Length());
 			MemCopy((void*)(result.mpData + metaSize), (void*)(mpData + metaSize), mpMeta->length);
-			MemCopy((void*)(result.mpData + metaSize + mpMeta->length), (void*)pStr, length * sizeof(CharType));
+			MemCopy((void*)(result.mpData + metaSize + mpMeta->length), (void*)str.Str(), str.Length() * sizeof(CharType));
 			return result;
 		}
 
@@ -129,9 +141,108 @@ namespace Quartz
 			return result;
 		}
 
-		SubstringType Substring(uSize start, uSize end)
+		SubstringBase TrimWhitespace() const
 		{
-			return SubstringType(*this, start, end);
+			return TrimWhitespaceForward().TrimWhitespaceReverse();
+		}
+
+		SubstringBase TrimWhitespaceForward() const
+		{
+			if (IsEmpty())
+			{
+				return *this;
+			}
+
+			uSize idx = 0;
+			while (idx < mLength && IsWhitespace(Str()[idx]))
+			{
+				idx++;
+			}
+
+			return Substring(idx);
+		}
+
+		SubstringBase TrimWhitespaceReverse() const
+		{
+			if (IsEmpty())
+			{
+				return *this;
+			}
+
+			uSize idx = mLength - 1;
+			while (idx > 0 && IsWhitespace(Str()[idx]))
+			{
+				idx--;
+			}
+
+			return Substring(0, idx + 1);
+		}
+
+		uSize Find(const WrapperStringBase& str) const
+		{
+			const CharType* foundStr = StrStr(Str(), str.Str());
+
+			if (!foundStr)
+			{
+				return Length();
+			}
+			else
+			{
+				return (uSize)(foundStr - Str()) / sizeof(CharType);
+			}
+		}
+
+		uSize FindReverse(const WrapperStringBase& str) const
+		{
+			const CharType* pStart = Str();
+			const CharType* pSubStr = pStart + (Length() - 1);
+			uSize revLength = 1;
+
+			while (pSubStr != pStart)
+			{
+				WrapperStringBase testStr(pSubStr, revLength);
+
+				if (testStr.StartsWith(str))
+				{
+					return Length() - revLength;
+				}
+
+				pSubStr--;
+				revLength++;
+			}
+
+			return 0;
+		}
+
+		bool StartsWith(const WrapperStringBase& str) const
+		{
+			if (str.Length() > Length())
+			{
+				return false;
+			}
+
+			const CharType* pStr1 = Str();
+			const CharType* pStr2 = str.Str();
+
+			for (uSize i = 0; i < str.Length(); i++)
+			{
+				if (pStr1[i] != pStr2[i])
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		SubstringBase Substring(uSize start, uSize end) const
+		{
+			return SubstringBase(*this, start, end);
+		}
+
+		SubstringBase Substring(uSize start) const
+		{
+			return SubstringBase(*this, start, Length());
 		}
 
 		bool operator==(const StringBase& str) const
@@ -140,7 +251,13 @@ namespace Quartz
 				(StrCmp(Str(), str.Str()) == 0);
 		}
 
-		bool operator==(const SubstringType& substr) const
+		bool operator==(const WrapperStringBase& str) const
+		{
+			return (Length() == str.Length()) &&
+				(StrCmp(Str(), str.Str()) == 0);
+		}
+
+		bool operator==(const SubstringBase& substr) const
 		{
 			return (Length() == substr.Length()) &&
 				(StrCmp(Str(), substr.Str()) == 0);
@@ -156,7 +273,12 @@ namespace Quartz
 			return !operator==(str);
 		}
 
-		bool operator!=(const SubstringType& substr) const
+		bool operator!=(const WrapperStringBase& str) const
+		{
+			return !operator==(str);
+		}
+
+		bool operator!=(const SubstringBase& substr) const
 		{
 			return !operator==(substr);
 		}
@@ -174,7 +296,7 @@ namespace Quartz
 
 		StringBase operator+(const CharType* pStr) const
 		{
-			return this->Append(pStr);
+			return this->Append(WrapperStringBase(pStr));
 		}
 
 		StringBase operator+(const StringBase& str) const
@@ -249,57 +371,100 @@ namespace Quartz
 	};
 
 	template<typename CharType>
-	class SubstringBase
+	class WrapperStringBase
 	{
 	public:
 		friend class StringBase<CharType>;
 
 	public:
-		using StringBase	= Quartz::StringBase<CharType>;
-		using SubstringType = Quartz::SubstringBase<CharType>;
+		using StringBase = Quartz::StringBase<CharType>;
 
 	protected:
-		uSize	mLength;
-		uInt8*	mpData;
-
-		// By keeping a copy of the original,
-		// we guarantee the data is not deleted until
-		// all substrs are destroyed
-		StringBase	mSrcString;
+		uSize			mLength;
+		const CharType*	mpStr;
 
 	protected:
-		friend void Swap(SubstringType& substr1, SubstringType& substr2)
+		friend void Swap(WrapperStringBase& wrapStr1, WrapperStringBase& wrapStr2)
 		{
 			using Quartz::Swap;
-			Swap(substr1.mLength, substr2.mLength);
-			Swap(substr1.mpData, substr2.mpData);
-			Swap(substr1.mSrcString, substr2.mSrcString);
+			Swap(wrapStr1.mLength, wrapStr2.mLength);
+
+			// @TODO: figure out why a simple swap doesn't work on const char*s
+			const CharType* temp = wrapStr1.mpStr;
+			wrapStr1.mpStr = wrapStr2.mpStr;
+			wrapStr2.mpStr = temp;
 		}
 
 	public:
-		SubstringBase()
-			: mLength(0), mpData(nullptr), mSrcString() {}
+		WrapperStringBase()
+			: mLength(0), mpStr(nullptr) {}
 
-		SubstringBase(const SubstringType& substr)
-			: mLength(substr.mLength), mpData(substr.mpData), mSrcString(substr.mSrcString) {}
+		WrapperStringBase(const CharType* pStr)
+			: mLength(StrLen<CharType>(pStr)), mpStr(pStr) {}
 
-		SubstringBase(SubstringType&& rSubstr) noexcept
+		WrapperStringBase(const CharType* pStr, uSize length)
+			: mLength(length), mpStr(pStr) {}
+
+		bool StartsWith(const StringBase& str) const
 		{
-			Swap(*this, rSubstr);
+			return StartsWith(WrapperStringBase(str.Str(), str.Length()))
 		}
 
-		SubstringBase(StringBase& str, uSize start, uSize end)
-			: mSrcString(str)
+		bool StartsWith(const WrapperStringBase& str) const
 		{
-			mLength = end - start;
-			mpData = reinterpret_cast<uInt8*>(str.Data() + start);
+			if (str.Length() > Length())
+			{
+				return false;
+			}
+
+			const CharType* pStr1 = Str();
+			const CharType* pStr2 = str.Str();
+
+			for (uSize i = 0; i < str.Length(); i++)
+			{
+				if (pStr1[i] != pStr2[i])
+				{
+					return false;
+				}
+			}
+
+			return true;
 		}
 
-		SubstringBase(SubstringType& substr, uSize start, uSize end)
-			: mSrcString(substr.mSrcString)
+		uSize Find(const WrapperStringBase& str) const
 		{
-			mLength = end - start;
-			mpData = reinterpret_cast<uInt8*>(substr.Data() + start);
+			const CharType* foundStr = StrStr(Str(), str.Str());
+
+			if (!foundStr)
+			{
+				return Length();
+			}
+			else
+			{
+				return (uSize)(foundStr - Str()) / sizeof(CharType);
+			}
+		}
+
+		uSize FindReverse(const WrapperStringBase& str) const
+		{
+			const CharType* pStart = Str();
+			const CharType* pSubStr = pStart + (Length() - 1);
+			uSize revLength = 1;
+
+			while (pSubStr != pStart)
+			{
+				WrapperStringBase testStr(pSubStr, revLength);
+
+				if (testStr.StartsWith(str))
+				{
+					return Length() - revLength;
+				}
+
+				pSubStr--;
+				revLength++;
+			}
+
+			return 0;
 		}
 
 		bool operator==(const StringBase& str) const
@@ -308,10 +473,10 @@ namespace Quartz
 				(StrCmpCount(Str(), str.Str(), mLength) == 0);
 		}
 
-		bool operator==(const SubstringType& substr) const
+		bool operator==(const WrapperStringBase& wrapStr) const
 		{
-			return (mLength == substr.mLength) &&
-				(StrCmpCount(Str(), substr.Str(), mLength) == 0);
+			return (mLength == wrapStr.mLength) &&
+				(StrCmpCount(Str(), wrapStr.Str(), mLength) == 0);
 		}
 
 		bool operator==(const CharType* pStr) const
@@ -324,9 +489,9 @@ namespace Quartz
 			return !operator==(str);
 		}
 
-		bool operator!=(const SubstringType& substr) const
+		bool operator!=(const WrapperStringBase& wrapStr) const
 		{
-			return !operator==(substr);
+			return !operator==(wrapStr);
 		}
 
 		bool operator!=(const CharType* pStr) const
@@ -334,9 +499,9 @@ namespace Quartz
 			return !operator==(pStr);
 		}
 
-		SubstringType& operator=(SubstringType substr)
+		WrapperStringBase& operator=(WrapperStringBase wrapStr)
 		{
-			Swap(*this, substr);
+			Swap(*this, wrapStr);
 			return *this;
 		}
 
@@ -347,27 +512,142 @@ namespace Quartz
 
 		const CharType* Str() const
 		{
-			return reinterpret_cast<const CharType*>(mpData);
+			return reinterpret_cast<const CharType*>(mpStr);
 		}
 
 		CharType* Data()
 		{
-			return reinterpret_cast<CharType*>(mpData);
+			return reinterpret_cast<CharType*>(mpStr);
 		}
+
+		operator const CharType* () { return mData; }
+		operator CharType* () { return mData; }
 
 		uSize Length() const
 		{
 			return mLength;
 		}
+
+		bool IsEmpty() const
+		{
+			return mLength == 0;
+		}
 	};
 
-	using StringA		= StringBase<char>;
-	using StringW		= StringBase<wchar_t>;
-	using SubStringA	= SubstringBase<char>;
-	using SubStringW	= SubstringBase<wchar_t>;
+	template<typename CharType>
+	class SubstringBase : public WrapperStringBase<CharType>
+	{
+	public:
+		using StringBase		= Quartz::StringBase<CharType>;
+		using WrapperStringBase	= Quartz::WrapperStringBase<CharType>;
 
-	using String		= StringA;
-	using SubString		= SubStringA;
+	protected:
+		// By keeping a copy of the original,
+		// we guarantee the data is not deleted until
+		// all substrings are destroyed
+		StringBase mSrcString;
+
+	protected:
+		friend void Swap(SubstringBase& substr1, SubstringBase& substr2)
+		{
+			using Quartz::Swap;
+			Swap(substr1.mLength, substr2.mLength);
+			Swap(substr1.mSrcString, substr2.mSrcString);
+			
+			// @TODO: figure out why a simple swap doesn't work on const char*s
+			const CharType* temp = substr1.mpStr;
+			substr1.mpStr = substr2.mpStr;
+			substr2.mpStr = temp;
+		}
+
+	public:
+		SubstringBase()
+			: WrapperStringBase(nullptr, 0), mSrcString() {}
+
+		SubstringBase(const SubstringBase& substr)
+			: WrapperStringBase(substr.mpStr, substr.mLength),
+			mSrcString(substr.mSrcString) {}
+
+		SubstringBase(SubstringBase&& rSubstr) noexcept
+		{
+			Swap(*this, rSubstr);
+		}
+
+		SubstringBase(const StringBase& str, uSize start, uSize end)
+			: WrapperStringBase(str.Str() + start, end - start), 
+			mSrcString(str) { }
+
+		SubstringBase(const SubstringBase& substr, uSize start, uSize end)
+			: WrapperStringBase(substr.Str() + start, end - start),
+			mSrcString(substr.mSrcString) { }
+
+		SubstringBase Substring(uSize start, uSize end) const
+		{
+			// @TODO assert? within bounds
+			return SubstringBase(*this, start, end);
+		}
+
+		SubstringBase Substring(uSize start) const
+		{
+			return SubstringBase(*this, start, Length());
+		}
+
+		SubstringBase TrimWhitespace() const
+		{ 
+			return TrimWhitespaceForward().TrimWhitespaceReverse();
+		}
+
+		SubstringBase TrimWhitespaceForward() const
+		{
+			if (IsEmpty())
+			{
+				return *this;
+			}
+
+			uSize idx = 0;
+			while (idx < mLength && IsWhitespace(mpStr[idx]))
+			{
+				idx++;
+			}
+
+			return Substring(idx);
+		}
+
+		SubstringBase TrimWhitespaceReverse() const
+		{
+			if (IsEmpty())
+			{
+				return *this;
+			}
+
+			uSize idx = mLength - 1;
+			while (idx > 0 && IsWhitespace(mpStr[idx]))
+			{
+				idx--;
+			}
+
+			return Substring(0, idx + 1);
+		}
+
+		WrapperStringBase& operator=(WrapperStringBase wrapStr) = delete;
+
+		SubstringBase& operator=(SubstringBase substr)
+		{
+			Swap(*this, substr);
+			return *this;
+		}
+	};
+
+	using StringA			= StringBase<char>;
+	using StringW			= StringBase<wchar_t>;
+	using WrapperStringA	= WrapperStringBase<char>;
+	using WrapperStringW	= WrapperStringBase<wchar_t>;
+	using SubstringA		= SubstringBase<char>;
+	using SubstringW		= SubstringBase<wchar_t>;
+
+	using String			= StringA;
+	using WrapperString		= WrapperStringA;
+	using Substring			= SubstringA;
 
 	template<>
 	inline uSize StrLen<char>(const char* pStr)
@@ -382,31 +662,43 @@ namespace Quartz
 	}
 
 	template<>
-	inline uSize StrCmp<char>(const char* pStr1, const char* pStr2)
+	inline sSize StrCmp<char>(const char* pStr1, const char* pStr2)
 	{
-		return static_cast<uSize>(strcmp(pStr1, pStr2));
+		return static_cast<sSize>(strcmp(pStr1, pStr2));
 	}
 
 	template<>
-	inline uSize StrCmp<wchar_t>(const wchar_t* pStr1, const wchar_t* pStr2)
+	inline sSize StrCmp<wchar_t>(const wchar_t* pStr1, const wchar_t* pStr2)
 	{
-		return static_cast<uSize>(wcscmp(pStr1, pStr2));
+		return static_cast<sSize>(wcscmp(pStr1, pStr2));
 	}
 
 	template<>
-	inline uSize StrCmpCount<char>(const char* pStr1, const char* pStr2, uSize count)
+	inline sSize StrCmpCount<char>(const char* pStr1, const char* pStr2, uSize count)
 	{
-		return static_cast<uSize>(strncmp(pStr1, pStr2, count));
+		return static_cast<sSize>(strncmp(pStr1, pStr2, count));
 	}
 
 	template<>
-	inline uSize StrCmpCount<wchar_t>(const wchar_t* pStr1, const wchar_t* pStr2, uSize count)
+	inline sSize StrCmpCount<wchar_t>(const wchar_t* pStr1, const wchar_t* pStr2, uSize count)
 	{
-		return static_cast<uSize>(wcsncmp(pStr1, pStr2, count));
+		return static_cast<sSize>(wcsncmp(pStr1, pStr2, count));
 	}
 
 	template<>
-	inline uSize Hash<String>(const String& value)
+	inline const char* StrStr<char>(const char* pStr, const char* pDelim)
+	{
+		return strstr(pStr, pDelim);
+	}
+
+	template<>
+	inline const wchar_t* StrStr<wchar_t>(const wchar_t* pStr, const wchar_t* pDelim)
+	{
+		return wcsstr(pStr, pDelim);
+	}
+
+	template<>
+	inline uSize Hash<StringA>(const StringA& value)
 	{
 		// MurmurOAAT64 Hash
 
