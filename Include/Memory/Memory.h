@@ -10,6 +10,14 @@ namespace Quartz
 	|	               QUARTZLIB MEMORY                  |
 	=====================================================*/
 
+	#define KIBIBYTE 1024UL
+	#define MEBIBYTE KIBIBYTE * 1024UL
+	#define GIBIBYTE MEBIBYTE * 1024UL
+	
+	#define KILOBYTE 1000UL
+	#define MEGABYTE KILOBYTE * 1000UL
+	#define GIGABYTE MEGABYTE * 1000UL
+
 	inline void* MemAlloc(uSize sizeBytes)
 	{
 		return malloc(sizeBytes);

@@ -143,7 +143,7 @@ namespace Quartz
 
 			while (true)
 			{
-				const EntryType& entry = mTable[index];
+				const EntryType& entry = mTable.Data()[index];
 
 				if (entry.IsEmpty() || dist > entry.probe)
 				{
@@ -152,7 +152,7 @@ namespace Quartz
 
 				if (entry.hash == hash && entry.keyValue == keyValue)
 				{
-					return &mTable[index];
+					return &mTable.Data()[index];
 				}
 
 				index = WrapIndex(index + 1);
@@ -169,7 +169,7 @@ namespace Quartz
 
 			while (true)
 			{
-				const EntryType& entry = mTable[index];
+				const EntryType& entry = mTable.Data()[index];
 
 				if (entry.IsEmpty() || dist > entry.probe)
 				{
@@ -178,7 +178,7 @@ namespace Quartz
 
 				if (entry.hash == hash && entry.keyValue == keyValue)
 				{
-					return &mTable[index];
+					return &mTable.Data()[index];
 				}
 
 				index = WrapIndex(index + 1);
@@ -216,21 +216,21 @@ namespace Quartz
 
 			while (true)
 			{
-				EntryType& current = mTable[index];
+				EntryType& current = mTable.Data()[index];
 
 				// Entry is empty
 				if (current.IsEmpty())
 				{
 					++mSize;
 					Swap(entry, current);
-					return mTable[swapedIndex == -1 ? index : swapedIndex];
+					return mTable.Data()[swapedIndex == -1 ? index : swapedIndex];
 				}
 
 				// Found previous key entry
 				if (current.keyValue == entry.keyValue)
 				{
 					Swap(entry, current);
-					return mTable[swapedIndex == -1 ? index : swapedIndex];
+					return mTable.Data()[swapedIndex == -1 ? index : swapedIndex];
 				}
 
 				// Robin hood
@@ -253,11 +253,11 @@ namespace Quartz
 		{
 			Table mNewTable(size);
 
-			EntryType* pEntry = &mTable[0];
+			EntryType* pEntry = &mTable.Data()[0];
 
-			//((EntryType)mTable[mCapacity - 1]).isLast = true; // TODO: Figure out why I need this
+			//((EntryType)mTable.Data()[mCapacity - 1]).isLast = true; // TODO: Figure out why I need this
 
-			while (pEntry != &mTable[mCapacity])//(!pEntry->IsLast())
+			while (pEntry != &mTable.Data()[mCapacity])//(!pEntry->IsLast())
 			{
 				if (!pEntry->IsEmpty())
 				{
@@ -304,16 +304,16 @@ namespace Quartz
 			: mTable(INITAL_SIZE, EntryType()), mSize(0), mCapacity(INITAL_SIZE),
 			mThreshold(INITAL_SIZE* LOAD_FACTOR)
 		{
-			mTable[0].first = true;
-			mTable[mCapacity - 1].last = true;
+			mTable.Data()[0].first = true;
+			mTable.Data()[mCapacity - 1].last = true;
 		}
 
 		Table(HashType capacity)
 			: mTable(capacity, EntryType()), mSize(0), mCapacity(capacity),
 			mThreshold(capacity* LOAD_FACTOR)
 		{
-			mTable[0].first = true;
-			mTable[mCapacity - 1].last = true;
+			mTable.Data()[0].first = true;
+			mTable.Data()[mCapacity - 1].last = true;
 		}
 
 		Table(const Table& table)
@@ -420,9 +420,9 @@ namespace Quartz
 				return Iterator();
 			}
 
-			Iterator it(&mTable[0]);
+			Iterator it(&mTable.Data()[0]);
 
-			if (mTable[0].IsEmpty())
+			if (mTable.Data()[0].IsEmpty())
 			{
 				return ++it;
 			}
@@ -437,9 +437,9 @@ namespace Quartz
 				return ConstIterator();
 			}
 
-			ConstIterator it(&mTable[0]);
+			ConstIterator it(&mTable.Data()[0]);
 
-			if (mTable[0].IsEmpty())
+			if (mTable.Data()[0].IsEmpty())
 			{
 				return ++it;
 			}
@@ -471,7 +471,7 @@ namespace Quartz
 		{
 			mTable.Clear();
 			mTable.Resize(mCapacity, EntryType());
-			mTable[mCapacity - 1].isLast = true;
+			mTable.Data()[mCapacity - 1].isLast = true;
 			mSize = 0;
 		}
 

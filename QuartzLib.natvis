@@ -44,10 +44,29 @@
   </Type>
 
   <Type Name = "Quartz::SubstringBase&lt;wchar_t&gt;">
-    <DisplayString Condition="mLength">[Empty]</DisplayString>
+    <DisplayString Condition="mLength == 0">[Empty]</DisplayString>
     <DisplayString>{mpStr,[mLength]su}</DisplayString>
     <Expand>
       <Item Name="[Length]">(int)mLength</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::StringReaderBase&lt;Quartz::StringBase&lt;char&gt;&gt;">
+    <DisplayString Condition="mRemaining.mLength == 0">[Empty]</DisplayString>
+    <DisplayString>{mRemaining.mpStr,[mRemaining.mLength]na}</DisplayString>
+    <Expand>
+      <Item Name="[Original]">mString</Item>
+      <Item Name="[Remaining]">mRemaining</Item>
+      <Item Name="[Cursor]">(int)mCursor</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::StringReaderBase&lt;Quartz::StringBase&lt;wchar_t&gt;&gt;">
+    <DisplayString Condition="mRemaining.mLength == 0">[Empty]</DisplayString>
+    <DisplayString>{mRemaining.mpStr,[mRemaining.mLength]su}</DisplayString>
+    <Expand>
+      <Item Name="[Original]">mString</Item>
+      <Item Name="[Remaining]">mRemaining</Item>
     </Expand>
   </Type>
 

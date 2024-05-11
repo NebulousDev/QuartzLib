@@ -80,6 +80,13 @@ namespace Quartz
 			*reinterpret_cast<CharType*>(mpData + metaSize) = '\0';
 		}
 
+		StringBase(const uSize length)
+			: mpData(new uInt8[metaSize + (length * sizeof(CharType))])
+		{
+			*mpMeta = StringMeta(1, length);
+			*reinterpret_cast<CharType*>(mpData + metaSize + ((length - 1) * sizeof(CharType))) = '\0';
+		}
+
 		StringBase(const StringBase& str)
 			: mpData(str.mpData)
 		{
@@ -178,7 +185,21 @@ namespace Quartz
 			return Substring(0, idx + 1);
 		}
 
-		uSize Find(const WrapperStringBase& str) const
+		uSize Find(const CharType* pStr) const
+		{
+			const CharType* foundStr = StrStr(Str(), pStr);
+
+			if (!foundStr)
+			{
+				return Length();
+			}
+			else
+			{
+				return (uSize)(foundStr - Str()) / sizeof(CharType);
+			}
+		}
+
+		uSize Find(const StringBase& str) const
 		{
 			const CharType* foundStr = StrStr(Str(), str.Str());
 
@@ -192,7 +213,29 @@ namespace Quartz
 			}
 		}
 
-		uSize FindReverse(const WrapperStringBase& str) const
+		uSize FindReverse(const CharType* pStr) const
+		{
+			const CharType* pStart = Str();
+			const CharType* pSubStr = pStart + (Length() - 1);
+			uSize revLength = 1;
+
+			while (pSubStr != pStart)
+			{
+				WrapperStringBase testStr(pSubStr, revLength);
+
+				if (testStr.StartsWith(WrapperStringBase(pStr)))
+				{
+					return Length() - revLength;
+				}
+
+				pSubStr--;
+				revLength++;
+			}
+
+			return 0;
+		}
+
+		uSize FindReverse(const StringBase& str) const
 		{
 			const CharType* pStart = Str();
 			const CharType* pSubStr = pStart + (Length() - 1);
@@ -214,7 +257,23 @@ namespace Quartz
 			return 0;
 		}
 
-		bool StartsWith(const WrapperStringBase& str) const
+		bool StartsWith(const CharType* pStr) const
+		{
+			const CharType* pStr1 = Str();
+			const CharType* pStr2 = pStr;
+
+			for (uSize i = 0; i < str.Length(); i++)
+			{
+				if (pStr1[i] != pStr2[i] || pStr[i] == '\0')
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		bool StartsWith(const StringBase& str) const
 		{
 			if (str.Length() > Length())
 			{
@@ -431,9 +490,9 @@ namespace Quartz
 			return true;
 		}
 
-		uSize Find(const WrapperStringBase& str) const
+		uSize Find(const CharType* pStr) const
 		{
-			const CharType* foundStr = StrStr(Str(), str.Str());
+			const CharType* foundStr = StrStr(Str(), pStr);
 
 			if (!foundStr)
 			{
@@ -445,7 +504,7 @@ namespace Quartz
 			}
 		}
 
-		uSize FindReverse(const WrapperStringBase& str) const
+		uSize FindReverse(const CharType* pStr) const
 		{
 			const CharType* pStart = Str();
 			const CharType* pSubStr = pStart + (Length() - 1);

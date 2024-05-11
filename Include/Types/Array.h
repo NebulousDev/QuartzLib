@@ -6,21 +6,36 @@
 #include "Utility/Iterator.h"
 #include "Utility/InitializerList.h"
 
+#include <assert.h>
+
 namespace Quartz
 {
 	/*====================================================
 	|                  QUARTZLIB ARRAY                   |
 	=====================================================*/
 
-	template<typename ValueType, typename SizeType = uSize>
-	class Array
+	template<typename ValueType, uSize SMALL_SIZE>
+	class _SmallArray
+	{
+	protected:
+		ValueType mSmall[SMALL_SIZE];
+	};
+
+	template<typename ValueType>
+	class _SmallArray<ValueType, 0> {};
+
+	template<typename ValueType, uSize SMALL_SIZE = 0>
+	class Array : public _SmallArray<ValueType, SMALL_SIZE>
 	{
 	public:
+		using SizeType		= uSize;
 		using Iterator		= Quartz::Iterator<Array, ValueType>;
 		using ConstIterator = Quartz::ConstIterator<Array, ValueType>;
 
+		constexpr static bool IS_SMALL = SMALL_SIZE != 0;
+
 		constexpr static float RESIZE_FACTOR	= 1.5f;
-		constexpr static uSize INITAL_SIZE		= 16;
+		constexpr static uSize INITAL_SIZE		= IS_SMALL ? SMALL_SIZE : 16;
 
 	protected:
 		ValueType*	mpData;
@@ -36,6 +51,11 @@ namespace Quartz
 
 		void ReserveImpl(SizeType capacity, SizeType offset = 0)
 		{
+			if constexpr (IS_SMALL)
+			{
+				assert(false && "Cannot resize a 'small' Array (SMALL_SIZE > 0).");
+			}
+
 			ValueType* mpPrev = mpData;
 
 			mpData = new ValueType[capacity];
@@ -54,40 +74,107 @@ namespace Quartz
 		friend void Swap(Array& array1, Array& array2)
 		{
 			using Quartz::Swap;
-			Swap(array1.mpData, array2.mpData);
+
+			if constexpr (IS_SMALL)
+			{
+				uSize maxSize = array1.Size() > array2.Size() 
+					? array1.Size() : array2.Size();
+
+				for (uSize i = 0; i < maxSize; i++)
+				{
+					Swap(array1.mSmall[i], array2.mSmall[i]);
+				}
+			}
+			else
+			{
+				Swap(array1.mpData, array2.mpData);
+			}
+
 			Swap(array1.mSize, array2.mSize);
 			Swap(array1.mCapacity, array2.mCapacity);
 		}
 
 	public:
 		Array()
-			: mpData(nullptr), mSize(0), mCapacity(0) {}
+			: mpData(nullptr), mSize(0), mCapacity(0)
+		{
+			if constexpr (IS_SMALL)
+			{
+				mpData = mSmall;
+				mCapacity = SMALL_SIZE;
+			}
+		}
 
 		Array(SizeType size)
 			: mSize(size), mCapacity(size)
 		{
-			mpData = new ValueType[size];
+			if constexpr (IS_SMALL)
+			{
+				if (size > SMALL_SIZE)
+				{
+					assert(false && "Cannot construct a 'small' Array (SMALL_SIZE > 0) with a size greater than SMALL_SIZE.");
+				}
+
+				mpData = mSmall;
+				mCapacity = SMALL_SIZE;
+			}
+			else
+			{
+				mpData = new ValueType[size];
+			}
 		}
 
 		Array(SizeType size, const ValueType& value)
-			: mSize(size), mCapacity(size)
+			: Array(size)
 		{
-			mpData = new ValueType[size];
-
 			for (SizeType i = 0; i < mSize; i++)
 			{
 				mpData[i] = value;
 			}
 		}
 
-		Array(const Array& array)
-			: mSize(array.mSize), mCapacity(array.mCapacity)
+		template<uSize CTOR_SMALL_SIZE>
+		Array(const Array<ValueType, CTOR_SMALL_SIZE>& array) :
+			mSize(array.Size()), mCapacity(array.Capacity())
 		{
-			mpData = new ValueType[array.mCapacity];
+			if constexpr (IS_SMALL)
+			{
+				assert(array.Size() >= SMALL_SIZE && "A 'small' Array (SMALL_SIZE > 0) can only be coppied to a 'large'\
+ Array (SMALL_SIZE == 0) , or a 'small' Array of a greater or equal size.");
+
+				mpData = mSmall;
+				mCapacity = SMALL_SIZE;
+			}
+			else
+			{
+				mpData = new ValueType[mCapacity];
+			}
 
 			for (SizeType i = 0; i < mSize; i++)
 			{
-				mpData[i] = array.mpData[i];
+				mpData[i] = array[i];
+			}
+		}
+
+		Array(const Array& array)
+			: mSize(array.Size()), mCapacity(array.Capacity())
+		{
+			if constexpr (IS_SMALL)
+			{
+				assert(array.Size() <= SMALL_SIZE && "A 'small' Array (SMALL_SIZE > 0) can only be coppied to a 'large'\
+ Array (SMALL_SIZE == 0), or a 'small' Array of a greater or equal size.");
+		
+				mpData = mSmall;
+				mCapacity = SMALL_SIZE;
+			}
+			else
+			{
+				mpData = new ValueType[mCapacity];
+			}
+		
+			for (SizeType i = 0; i < mSize; i++)
+			{
+				mpData[i] = array[i];
 			}
 		}
 
@@ -108,7 +195,10 @@ namespace Quartz
 
 		~Array()
 		{
-			delete[] mpData;
+			if constexpr (!IS_SMALL)
+			{
+				delete[] mpData;
+			}
 		}
 
 		template<typename RValueType>
@@ -151,13 +241,17 @@ namespace Quartz
 
 		void Remove(SizeType index) 
 		{
-			mpData[index].~ValueType();
+			assert(index < mSize && "Array index out of bounds.");
 
-			if (mSize > 0 && index < mSize)
+			if (index < mSize)
 			{
+				mpData[index].~ValueType();
+
 				// Move all values left by one
 				MemMove(&mpData[index], &mpData[index + 1], (mSize - index) * sizeof(ValueType));
 				--mSize;
+
+				new (&mpData[mSize]) ValueType();
 			}
 		}
 
@@ -178,6 +272,8 @@ namespace Quartz
 		// This function does NOT preserve insertion order
 		void FastRemove(SizeType index)
 		{
+			assert(index < mSize && "Array index out of bounds.");
+
 			Swap(mpData[index], mpData[mSize]);
 			mpData[mSize].~ValueType();
 			mSize--;
@@ -202,6 +298,8 @@ namespace Quartz
 
 		ValueType PopBack()
 		{
+			assert(mSize > 0 && "Cannot pop from an empty Array.");
+
 			if (mSize > 0)
 			{
 				ValueType value = mpData[mSize - 1];
@@ -209,12 +307,13 @@ namespace Quartz
 				return value;
 			}
 
-			// @Todo: throw error
 			return ValueType();
 		}
 
 		ValueType PopFront()
 		{
+			assert(mSize > 0 && "Cannot pop from an empty Array.");
+
 			if (mSize > 0)
 			{
 				ValueType value = mpData[0];
@@ -222,12 +321,13 @@ namespace Quartz
 				return value;
 			}
 
-			// @Todo: throw error
 			return ValueType();
 		}
 
 		void Resize(SizeType size)
 		{
+			assert(size > mSize && "Cannot resize Array less than the current size.");
+
 			if (size < mSize)
 			{
 				// Cannot resize smaller than mSize
@@ -251,6 +351,8 @@ namespace Quartz
 
 		void Resize(SizeType size, const ValueType& value)
 		{
+			assert(size > mSize && "Cannot resize Array less than the current size.");
+
 			if (size > mSize)
 			{
 				if (size > mCapacity)
@@ -279,6 +381,8 @@ namespace Quartz
 
 		void Reserve(SizeType capacity)
 		{
+			assert(capacity > mSize && "Cannot reserve Array less than the current size.");
+
 			if (capacity < mSize)
 			{
 				// Cannot resize smaller than mSize
@@ -454,6 +558,11 @@ namespace Quartz
 			return mSize == 0;
 		}
 
+		bool IsSmall() const
+		{
+			return IS_SMALL;
+		}
+
 		Array& operator=(Array array)
 		{
 			Swap(*this, array);
@@ -462,11 +571,15 @@ namespace Quartz
 
 		ValueType& operator[](SizeType index)
 		{
+			assert(index < mSize && "Array index out of bounds.");
+
 			return mpData[index];
 		}
 
 		const ValueType& operator[](SizeType index) const
 		{
+			assert(index < mSize && "Array index out of bounds.");
+
 			return mpData[index];
 		}
 

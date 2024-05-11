@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Array.h"
+#include "Memory/PoolAllocator.h"
 
 namespace Quartz
 {
@@ -8,12 +8,17 @@ namespace Quartz
 	|                   QUARTZLIB POOL                   |
 	=====================================================*/
 
-	template<typename ValueType, uSize POOl_SIZE = 128>
+	template<typename ValueType>
 	class Pool
 	{
 	private:
+		PoolAllocator<ValueType> mAllocator;
 
 	public:
-
+		Pool(uSize maxCount) :
+			mAllocator(maxCount * sizeof(ValueType))
+		{
+			
+		}
 	};
 }

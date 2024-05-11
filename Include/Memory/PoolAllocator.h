@@ -9,7 +9,7 @@ namespace Quartz
 	=====================================================*/
 
 	template<typename ValueType, typename SizeType = uInt32>
-	class PoolAllocator : public Allocator<PoolAllocator<ValueType, SizeType>, SizeType>
+	class PoolAllocator : public AllocatorBase<PoolAllocator<ValueType, SizeType>, SizeType>
 	{
 	private:
 		Allocator*	mpParent;
@@ -72,20 +72,35 @@ namespace Quartz
 			}
 
 			ValueType* pValue = new (pNextMem) ValueType(Forward<CtorValues>(values)...);
-			mSize++;
+			mSize++; 
 
 			return pValue;
 		}
 
-		void Free(ValueType* pValue)
+		bool Free(ValueType* pValue)
 		{
 			if (pValue)
 			{
+				if (pValue < mpData || 
+					reinterpret_cast<uInt8*>(pValue) > 
+					(reinterpret_cast<uInt8*>(mpData) + mMaxSizeBytes))
+				{
+					// Out of bounds. Value is not managed by this allocator
+					return false;
+				}
+
 				pValue->~ValueType();
 				*reinterpret_cast<SizeType*>(pValue) = mNextFreeIdx;
 				mNextFreeIdx = (pValue - mpData) / VALUE_SIZE;
 				mSize--;
+
+				return true;
 			}
+
+			return false;
 		}
+
+		inline uSize Size() const { return mSize; }
+		inline uSize Capacity() const { return mMaxSize; }
 	};
 }

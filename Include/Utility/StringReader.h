@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Types/String.h"
+#include <string.h>
 
 namespace Quartz
 {
@@ -8,8 +9,38 @@ namespace Quartz
 	|                   STRING READER                    |
 	=====================================================*/
 
+	template<typename CharType>
+	float ReadFloat(const CharType* pStr, CharType** ppEnd) = delete;
+
+	template<>
+	inline float ReadFloat<char>(const char* pStr, char** ppEnd)
+	{
+		return strtof(pStr, ppEnd);
+	}
+
+	template<>
+	inline float ReadFloat<wchar_t>(const wchar_t* pStr, wchar_t** ppEnd)
+	{
+		return wcstof(pStr, ppEnd);
+	}
+
+	template<typename CharType>
+	int64 ReadInt(const CharType* pStr, CharType** ppEnd) = delete;
+
+	template<>
+	inline int64 ReadInt<char>(const char* pStr, char** ppEnd)
+	{
+		return strtol(pStr, ppEnd, 0);
+	}
+
+	template<>
+	inline int64 ReadInt<wchar_t>(const wchar_t* pStr, wchar_t** ppEnd)
+	{
+		return wcstol(pStr, ppEnd, 0);
+	}
+
 	template<typename StringType>
-	class StringReader
+	class StringReaderBase
 	{
 	public:
 		using CharType		= typename StringType::CharType;
@@ -22,8 +53,13 @@ namespace Quartz
 		uSize			mCursor;
 
 	public:
-		StringReader(const StringType& string) :
+		StringReaderBase(const StringType& string) :
 			mString(string), mCursor(0), mRemaining(string.Substring(0)) { }
+
+		const CharType& Peek()
+		{
+			return mString.Str()[mCursor];
+		}
 
 		const CharType& Read()
 		{
@@ -32,9 +68,15 @@ namespace Quartz
 			return readChar;
 		}
 
-		const SubstringType& ReadTo(const WrapperType& delim)
+		SubstringType ReadTo(const WrapperType& delim)
 		{
-			uSize nextIdx = mCursor + mRemaining.Find(delim);
+			if (IsEmpty())
+			{
+				return Substring();
+			}
+
+			// @TODO: check this isn't a problem .Str()
+			uSize nextIdx = mCursor + mRemaining.Find(delim.Str()); 
 			Substring line = mString.Substring(mCursor, nextIdx);
 			mCursor = nextIdx + delim.Length();
 			mRemaining = mString.Substring(mCursor);
@@ -42,11 +84,11 @@ namespace Quartz
 			return line;
 		}
 
-		const SubstringType& ReadLine()
+		SubstringType ReadLine()
 		{
 			SubstringType line = ReadTo("\n");
 
-			if (line.Str()[line.Length() - 1] == '\r')
+			if (!line.IsEmpty() && line.Str()[line.Length() - 1] == '\r')
 			{
 				return line.Substring(0, line.Length() - 1);
 			}
@@ -67,6 +109,26 @@ namespace Quartz
 			mRemaining = mString.Substring(mCursor);
 		}
 
+		float ReadFloat()
+		{
+			CharType* pRead = nullptr;
+			const CharType* pStr = &(mString.Str()[mCursor]);
+			float value = Quartz::ReadFloat<CharType>(pStr, &pRead);
+			SetCursor(pRead - mString.Str());
+
+			return value;
+		}
+
+		uInt64 ReadInt()
+		{
+			CharType* pRead = nullptr;
+			const CharType* pStr = &(mString.Str()[mCursor]);
+			uInt64 value = Quartz::ReadInt<CharType>(pStr, &pRead);
+			SetCursor(pRead - mString.Str());
+
+			return value;
+		}
+
 		void Reset()
 		{
 			mCursor = 0;
@@ -74,18 +136,24 @@ namespace Quartz
 
 		bool SetCursor(uSize index)
 		{
-			if (index < mString.Length())
+			if (index > mString.Length())
 			{
 				return false;
 			}
 
 			mCursor = index;
+			mRemaining = mString.Substring(mCursor);
 
 			return true;
 		}
 
 		bool IsEmpty() const { return mCursor >= mString.Length(); }
+		bool IsEnd() const { return IsEmpty(); }
 		const SubstringType& GetRemaining() const { return mRemaining; }
 		uSize GetCursor() const { return mCursor; }
 	};
+
+	using StringReaderA = StringReaderBase<StringA>;
+	using StringReaderW = StringReaderBase<StringW>;
+	using StringReader = StringReaderA;
 }

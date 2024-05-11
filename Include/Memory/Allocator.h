@@ -10,8 +10,10 @@ namespace Quartz
 	|	             QUARTZLIB ALLOCATOR                 |
 	=====================================================*/
 
+	class Allocator {};
+
 	template<typename AllocatorType, typename SizeType = uSize>
-	class Allocator
+	class AllocatorBase : public Allocator
 	{
 	private:
 
