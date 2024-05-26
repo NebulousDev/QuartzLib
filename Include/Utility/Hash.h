@@ -2,7 +2,8 @@
 
 #include "Types/Types.h"
 
-#define QUARTZ_64
+#define QUARTZ_HASH_64
+#define QUARTZ_HASH_INVALID 0
 
 namespace Quartz
 {
@@ -10,15 +11,17 @@ namespace Quartz
 	|                   QUARTZLIB HASH                   |
 	=====================================================*/
 
+	using hash64 = uInt64;
+
 	template<typename HashType>
-	uSize Hash(const HashType& value) = delete;
+	hash64 Hash(const HashType& value) = delete;
 
 	template<>
-	inline uSize Hash<uInt32>(const uInt32& value)
+	inline hash64 Hash<uInt32>(const uInt32& value)
 	{
 		// https://stackoverflow.com/questions/664014/what-integer-hash-function-are-good-that-accepts-an-integer-hash-key
 
-#ifdef QUARTZ_64
+#ifdef QUARTZ_HASH_64
 
 		uInt64 value64 = value;
 
@@ -40,13 +43,13 @@ namespace Quartz
 	}
 
 	template<>
-	inline uSize Hash<int32>(const int32& value)
+	inline hash64 Hash<int32>(const int32& value)
 	{
 		return Hash<uInt32>((const uInt32&)value);
 	}
 
 	template<>
-	inline uSize Hash<uInt64>(const uInt64& value)
+	inline hash64 Hash<uInt64>(const uInt64& value)
 	{
 		// https://stackoverflow.com/questions/664014/what-integer-hash-function-are-good-that-accepts-an-integer-hash-key
 

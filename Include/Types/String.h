@@ -7,6 +7,9 @@
 #include "Utility/Whitespace.h"
 
 #include <cstring>
+#include <assert.h>
+
+#define DEBUG_STRING_LENGTH_CHECK 0
 
 namespace Quartz
 {
@@ -21,10 +24,16 @@ namespace Quartz
 	sSize StrCmp(const CharType* pStr1, const CharType* pStr2);
 
 	template<typename CharType>
+	sSize StrCmpCount(const CharType* pStr1, const CharType* pStr2);
+
+	template<typename CharType>
 	sSize StrCmpCount(const CharType* pStr1, const CharType* pStr2, uSize count);
 
 	template<typename CharType>
 	const CharType* StrStr(const CharType* pStr, const CharType* pDelim);
+
+	template<typename CharType>
+	const CharType* StrStrMax(const CharType* pStr, const CharType* pDelim, uSize maxLength);
 
 	template<typename CharType>
 	class WrapperStringBase;
@@ -47,14 +56,15 @@ namespace Quartz
 
 		struct StringMeta
 		{
-			uSize refCount;
-			uSize length;
+			uSize	refCount;
+			uSize	length;
+			hash64	hash;
 
 			StringMeta() :
-				refCount(1), length(0) { }
+				refCount(1), length(0), hash(QUARTZ_HASH_INVALID) { }
 
-			StringMeta(uSize refCount, uSize length) :
-				refCount(refCount), length(length) { }
+			StringMeta(uSize refCount, uSize length, hash64 hash) :
+				refCount(refCount), length(length), hash(hash) { }
 		};
 
 		union
@@ -76,15 +86,15 @@ namespace Quartz
 		StringBase() : 
 			mpData(new uInt8[metaSize + sizeof(CharType)])
 		{
-			*mpMeta = StringMeta(1, 0);
+			*mpMeta = StringMeta(1, 0, QUARTZ_HASH_INVALID);
 			*reinterpret_cast<CharType*>(mpData + metaSize) = '\0';
 		}
 
 		StringBase(const uSize length)
-			: mpData(new uInt8[metaSize + (length * sizeof(CharType))])
+			: mpData(new uInt8[metaSize + (length + 1 * sizeof(CharType))])
 		{
-			*mpMeta = StringMeta(1, length);
-			*reinterpret_cast<CharType*>(mpData + metaSize + ((length - 1) * sizeof(CharType))) = '\0';
+			*mpMeta = StringMeta(1, length, QUARTZ_HASH_INVALID);
+			*reinterpret_cast<CharType*>(mpData + metaSize + (length * sizeof(CharType))) = '\0';
 		}
 
 		StringBase(const StringBase& str)
@@ -104,12 +114,15 @@ namespace Quartz
 
 		StringBase(const CharType* pStr, uSize length)
 		{
+#if DEBUG_STRING_LENGTH_CHECK
+			assert(!(length > 0 && length > StrLen(pStr)));
+#endif
 			const uSize strBufferSize	= (length + 1) * sizeof(CharType);
 			const uSize fullBufferSize	= metaSize + strBufferSize;
 
 			mpData = new uInt8[fullBufferSize]{};
 
-			*mpMeta = StringMeta(1, length);
+			*mpMeta = StringMeta(1, length, QUARTZ_HASH_INVALID);
 			MemCopy((void*)(mpData + metaSize), (void*)pStr, strBufferSize);
 
 			// Set last value to zero (null-termination)
@@ -124,7 +137,7 @@ namespace Quartz
 
 		~StringBase()
 		{
-			if (--mpMeta->refCount == 0)
+			if (mpMeta && --mpMeta->refCount == 0)
 			{
 				delete[] mpData;
 			}
@@ -187,7 +200,7 @@ namespace Quartz
 
 		uSize Find(const CharType* pStr) const
 		{
-			const CharType* foundStr = StrStr(Str(), pStr);
+			const CharType* foundStr = StrStrMax(Str(), pStr, Length());
 
 			if (!foundStr)
 			{
@@ -201,7 +214,7 @@ namespace Quartz
 
 		uSize Find(const StringBase& str) const
 		{
-			const CharType* foundStr = StrStr(Str(), str.Str());
+			const CharType* foundStr = StrStrMax(Str(), str.Str(), Length());
 
 			if (!foundStr)
 			{
@@ -307,24 +320,24 @@ namespace Quartz
 		bool operator==(const StringBase& str) const
 		{
 			return (Length() == str.Length()) &&
-				(StrCmp(Str(), str.Str()) == 0);
+				(StrCmpCount(Str(), str.Str(), Length()) == 0);
 		}
 
 		bool operator==(const WrapperStringBase& str) const
 		{
 			return (Length() == str.Length()) &&
-				(StrCmp(Str(), str.Str()) == 0);
+				(StrCmpCount(Str(), str.Str(), Length()) == 0);
 		}
 
 		bool operator==(const SubstringBase& substr) const
 		{
 			return (Length() == substr.Length()) &&
-				(StrCmp(Str(), substr.Str()) == 0);
+				(StrCmpCount(Str(), substr.Str(), Length()) == 0);
 		}
 
 		bool operator==(const CharType* pStr) const
 		{
-			return StrCmp(Str(), pStr) == 0;
+			return StrCmpCount(Str(), pStr, Length()) == 0;
 		}
 
 		bool operator!=(const StringBase& str) const
@@ -358,14 +371,19 @@ namespace Quartz
 			return this->Append(WrapperStringBase(pStr));
 		}
 
+		StringBase operator+(const WrapperStringBase& str) const
+		{
+			return this->Append(str);
+		}
+
 		StringBase operator+(const StringBase& str) const
 		{
 			return this->Append(str);
 		}
 
-		friend StringBase operator+(const CharType* pStr1, const StringBase& str2)
+		friend StringBase operator+(const WrapperStringBase& str1, const StringBase& str2)
 		{
-			return String(pStr1).Append(str2);
+			return String(str1).Append(str2);
 		}
 
 		StringBase& operator+=(const CharType* pStr)
@@ -427,6 +445,40 @@ namespace Quartz
 		{
 			return mpMeta->length == 0;
 		}
+
+		hash64 GetHash()
+		{
+			if (mpMeta->hash != QUARTZ_HASH_INVALID)
+			{
+				return mpMeta->hash;
+			}
+			else
+			{
+				// MurmurOAAT64 Hash
+
+				const CharType* pStr = Str();
+				const CharType* pStrEnd = Str() + Length();
+
+				uInt64 hash = 525201411107845655ull;
+
+				while (pStr != pStrEnd && *pStr)
+				{
+					hash ^= *pStr;
+					hash *= 0x5bd1e9955bd1e995;
+					hash ^= hash >> 47;
+					pStr++;
+				}
+
+				mpMeta->hash = static_cast<hash64>(hash);
+
+				return mpMeta->hash;
+			}
+		}
+
+		const hash64 GetHash() const
+		{
+			return const_cast<StringBase*>(this)->GetHash();
+		}
 	};
 
 	template<typename CharType>
@@ -441,6 +493,7 @@ namespace Quartz
 	protected:
 		uSize			mLength;
 		const CharType*	mpStr;
+		hash64			mHash;
 
 	protected:
 		friend void Swap(WrapperStringBase& wrapStr1, WrapperStringBase& wrapStr2)
@@ -456,17 +509,17 @@ namespace Quartz
 
 	public:
 		WrapperStringBase()
-			: mLength(0), mpStr(nullptr) {}
+			: mLength(0), mpStr(nullptr), mHash(QUARTZ_HASH_INVALID) {}
 
 		WrapperStringBase(const CharType* pStr)
-			: mLength(StrLen<CharType>(pStr)), mpStr(pStr) {}
+			: mLength(StrLen<CharType>(pStr)), mpStr(pStr), mHash(QUARTZ_HASH_INVALID) {}
 
 		WrapperStringBase(const CharType* pStr, uSize length)
-			: mLength(length), mpStr(pStr) {}
-
-		bool StartsWith(const StringBase& str) const
+			: mLength(length), mpStr(pStr), mHash(QUARTZ_HASH_INVALID)
 		{
-			return StartsWith(WrapperStringBase(str.Str(), str.Length()))
+#if DEBUG_STRING_LENGTH_CHECK
+			assert(!(length > 0 && length > StrLen(pStr)));
+#endif
 		}
 
 		bool StartsWith(const WrapperStringBase& str) const
@@ -490,9 +543,9 @@ namespace Quartz
 			return true;
 		}
 
-		uSize Find(const CharType* pStr) const
+		uSize Find(const WrapperStringBase& str) const
 		{
-			const CharType* foundStr = StrStr(Str(), pStr);
+			const CharType* foundStr = StrStrMax(Str(), str.Str(), Length());
 
 			if (!foundStr)
 			{
@@ -504,19 +557,19 @@ namespace Quartz
 			}
 		}
 
-		uSize FindReverse(const CharType* pStr) const
+		uSize FindReverse(const WrapperStringBase& str) const
 		{
 			const CharType* pStart = Str();
 			const CharType* pSubStr = pStart + (Length() - 1);
 			uSize revLength = 1;
 
-			while (pSubStr != pStart)
+			while (pSubStr >= pStart)
 			{
 				WrapperStringBase testStr(pSubStr, revLength);
 
-				if (testStr.StartsWith(str))
+				if (testStr.StartsWith(str) || pSubStr == (pStart + str.Length() - 1))
 				{
-					return Length() - revLength;
+					return Length() - revLength + str.Length() - 1;
 				}
 
 				pSubStr--;
@@ -579,8 +632,8 @@ namespace Quartz
 			return reinterpret_cast<CharType*>(mpStr);
 		}
 
-		operator const CharType* () { return mData; }
-		operator CharType* () { return mData; }
+		operator const CharType* () { return mpStr; }
+		operator CharType* () { return mpStr; }
 
 		uSize Length() const
 		{
@@ -590,6 +643,40 @@ namespace Quartz
 		bool IsEmpty() const
 		{
 			return mLength == 0;
+		}
+
+		hash64 GetHash()
+		{
+			if (mHash != QUARTZ_HASH_INVALID)
+			{
+				return mHash;
+			}
+			else
+			{
+				// MurmurOAAT64 Hash
+
+				const CharType* pStr = Str();
+				const CharType* pStrEnd = Str() + Length();
+
+				uInt64 hash = 525201411107845655ull;
+
+				while (pStr != pStrEnd && *pStr)
+				{
+					hash ^= *pStr;
+					hash *= 0x5bd1e9955bd1e995;
+					hash ^= hash >> 47;
+					pStr++;
+				}
+
+				mHash = static_cast<hash64>(hash);
+
+				return mHash;
+			}
+		}
+
+		const hash64 GetHash() const
+		{
+			return const_cast<WrapperStringBase*>(this)->GetHash();
 		}
 	};
 
@@ -612,6 +699,7 @@ namespace Quartz
 			using Quartz::Swap;
 			Swap(substr1.mLength, substr2.mLength);
 			Swap(substr1.mSrcString, substr2.mSrcString);
+			Swap(substr1.mHash, substr2.mHash);
 			
 			// @TODO: figure out why a simple swap doesn't work on const char*s
 			const CharType* temp = substr1.mpStr;
@@ -757,41 +845,67 @@ namespace Quartz
 	}
 
 	template<>
-	inline uSize Hash<StringA>(const StringA& value)
+	inline const char* StrStrMax<char>(const char* pStr, const char* pDelim, uSize maxLength)
 	{
-		// MurmurOAAT64 Hash
+		// @TODO: Find a better alternative that can actually stop at maxLength;
+		const char* pFound = strstr(pStr, pDelim);
 
-		const char* pStr = value.Str();
-
-		uInt64 hash = 525201411107845655ull;
-
-		while (*(pStr++))
+		if (pFound - pStr > maxLength)
 		{
-			hash ^= *pStr;
-			hash *= 0x5bd1e9955bd1e995;
-			hash ^= hash >> 47;
+			return pStr + maxLength;
 		}
 
-		return static_cast<uSize>(hash);
+		return pFound;
 	}
 
 	template<>
-	inline uSize Hash<StringW>(const StringW& value)
+	inline const wchar_t* StrStrMax<wchar_t>(const wchar_t* pStr, const wchar_t* pDelim, uSize maxLength)
 	{
-		// MurmurOAAT64 Hash
+		// @TODO: Find a better alternative that can actually stop at maxLength;
+		const wchar_t* pFound = wcsstr(pStr, pDelim);
 
-		const wchar_t* pStr = value.Str();
-
-		uInt64 hash = 525201411107845655ull;
-
-		while (*(pStr++))
+		if (pFound - pStr > maxLength)
 		{
-			hash ^= *pStr;
-			hash *= 0x5bd1e9955bd1e995;
-			hash ^= hash >> 47;
+			return pStr + maxLength;
 		}
 
-		return static_cast<uSize>(hash);
+		return pFound;
+	}
+
+	template<>
+	inline hash64 Hash<StringA>(const StringA& value)
+	{
+		return value.GetHash();
+	}
+
+	template<>
+	inline hash64 Hash<StringW>(const StringW& value)
+	{
+		return value.GetHash();
+	}
+
+	template<>
+	inline hash64 Hash<WrapperStringA>(const WrapperStringA& value)
+	{
+		return value.GetHash();
+	}
+
+	template<>
+	inline hash64 Hash<WrapperStringW>(const WrapperStringW& value)
+	{
+		return value.GetHash();
+	}
+
+	template<>
+	inline hash64 Hash<SubstringA>(const SubstringA& value)
+	{
+		return value.GetHash();
+	}
+
+	template<>
+	inline hash64 Hash<SubstringW>(const SubstringW& value)
+	{
+		return value.GetHash();
 	}
 
 	// @Todo: Speed up
@@ -840,5 +954,15 @@ namespace Quartz
 	inline StringW operator"" _WSTR(const wchar_t* str, size_t size)
 	{
 		return StringW(str, size);
+	}
+
+	inline WrapperString operator"" _WRAP(const char* str, size_t size)
+	{
+		return WrapperString(str, size);
+	}
+
+	inline WrapperStringW operator"" _WWRAP(const wchar_t* str, size_t size)
+	{
+		return WrapperStringW(str, size);
 	}
 }
