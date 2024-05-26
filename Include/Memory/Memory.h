@@ -35,7 +35,7 @@ namespace Quartz
 	}
 
 	// TODO: Implement later (with intrinsics)
-	inline void* MemCopy(void* pDest, void* pSource, uSize size)
+	inline void* MemCopy(void* pDest, const void* pSource, uSize size)
 	{
 		memcpy_s(pDest, size, pSource, size);
 		return pDest;

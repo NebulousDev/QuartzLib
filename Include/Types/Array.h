@@ -53,7 +53,7 @@ namespace Quartz
 		{
 			if constexpr (IS_SMALL)
 			{
-				assert(false && "Cannot resize a 'small' Array (SMALL_SIZE > 0).");
+				assert(false && "Cannot reserve a 'small' Array (SMALL_SIZE > 0).");
 			}
 
 			ValueType* mpPrev = mpData;
@@ -343,7 +343,7 @@ namespace Quartz
 			for (SizeType i = mSize; i < size; i++)
 			{
 				// Construct new default-constructed value
-				//new (&mpData[i]) ValueType();
+				new (&mpData[i]) ValueType();
 			}
 
 			mSize = size;

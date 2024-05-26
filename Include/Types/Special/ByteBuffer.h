@@ -32,6 +32,37 @@ namespace Quartz
 			return true;
 		}
 
+		bool WriteData(const void* pData, uSize sizeBytes)
+		{
+			if (mSize + sizeBytes > mCapacity)
+			{
+				return false;
+			}
+
+			MemCopy((void*)&mpData[mSize], pData, sizeBytes);
+			mSize += sizeBytes;
+
+			return true;
+		}
+
+		template<typename ValueType, uSize SMALL_SIZE>
+		bool WriteArray(const Array<ValueType, SMALL_SIZE>& array)
+		{
+			WriteData((void*)array.Data(), array.Size() * sizeof(ValueType));
+		}
+
+		bool Allocate(uSize sizeBytes)
+		{
+			if (sizeBytes < mSize || sizeBytes > mCapacity)
+			{
+				return false;
+			}
+
+			mSize = sizeBytes;
+
+			return true;
+		}
+
 		using Array::Clear;
 
 		using Array::Size;

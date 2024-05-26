@@ -63,12 +63,17 @@ namespace Quartz
 
 		const CharType& Read()
 		{
+			if(mCursor + 1 > mString.Length())
+			{
+				return mString.Str()[mString.Length()];
+			}
+
 			const CharType& readChar = mString.Str()[mCursor++];
 			mRemaining = mString.Substring(mCursor);
 			return readChar;
 		}
 
-		SubstringType ReadTo(const WrapperType& delim)
+		SubstringType ReadThrough(const WrapperType& delim)
 		{
 			if (IsEmpty())
 			{
@@ -79,6 +84,34 @@ namespace Quartz
 			uSize nextIdx = mCursor + mRemaining.Find(delim.Str()); 
 			Substring line = mString.Substring(mCursor, nextIdx);
 			mCursor = nextIdx + delim.Length();
+
+			if (mCursor > mString.Length())
+			{
+				mCursor = mString.Length();
+			}
+
+			mRemaining = mString.Substring(mCursor);
+
+			return line;
+		}
+
+		SubstringType ReadTo(const WrapperType& delim)
+		{
+			if (IsEmpty())
+			{
+				return Substring();
+			}
+
+			// @TODO: check this isn't a problem .Str()
+			uSize nextIdx = mCursor + mRemaining.Find(delim.Str());
+			Substring line = mString.Substring(mCursor, nextIdx);
+			mCursor = nextIdx;
+
+			if (mCursor > mString.Length())
+			{
+				mCursor = mString.Length();
+			}
+
 			mRemaining = mString.Substring(mCursor);
 
 			return line;
@@ -86,7 +119,7 @@ namespace Quartz
 
 		SubstringType ReadLine()
 		{
-			SubstringType line = ReadTo("\n");
+			SubstringType line = ReadThrough("\n");
 
 			if (!line.IsEmpty() && line.Str()[line.Length() - 1] == '\r')
 			{
@@ -119,11 +152,11 @@ namespace Quartz
 			return value;
 		}
 
-		uInt64 ReadInt()
+		int64 ReadInt()
 		{
 			CharType* pRead = nullptr;
 			const CharType* pStr = &(mString.Str()[mCursor]);
-			uInt64 value = Quartz::ReadInt<CharType>(pStr, &pRead);
+			int64 value = Quartz::ReadInt<CharType>(pStr, &pRead);
 			SetCursor(pRead - mString.Str());
 
 			return value;
