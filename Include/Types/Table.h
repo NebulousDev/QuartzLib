@@ -123,12 +123,12 @@ namespace Quartz
 
 		inline uSize WrapIndex(uSize index) const
 		{
-			return index & (mCapacity - 1);
+			return index % mCapacity; //index & (mCapacity - 1);
 		}
 
 		inline uSize GetIndex(HashType hash) const
 		{
-			return hash & (mCapacity - 1);
+			return hash % mCapacity; //hash & (mCapacity - 1);
 		}
 
 		inline HashType GetDistance(HashType hash, HashType index) const
